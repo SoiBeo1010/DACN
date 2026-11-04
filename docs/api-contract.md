@@ -1,5 +1,7 @@
 # Hợp đồng API frontend/backend
 
+Đối chiếu hành vi API với các mã yêu cầu FR/NFR/BR tại [requirements.md](requirements.md). Các thay đổi hành vi phải được cập nhật cùng đặc tả và kịch bản nghiệm thu liên quan.
+
 ## 1. Quy ước chung
 
 - Base path: `/api/v1`.

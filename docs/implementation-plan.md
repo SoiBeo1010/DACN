@@ -1,5 +1,7 @@
 # Kế hoạch hiện thực hóa frontend/backend
 
+Theo dõi phạm vi, ưu tiên, trạng thái triển khai và tiêu chí nghiệm thu theo mã yêu cầu tại [requirements.md](requirements.md). Các mốc bên dưới được đối chiếu với ma trận yêu cầu trong tài liệu đó.
+
 ## 1. Cách triển khai
 
 Làm một lát cắt xuyên suốt bằng mock engine trước: đăng nhập, tạo phiên, worker chạy, FE lấy tiến độ, lưu kết quả và mở lại lịch sử. Cách này kiểm chứng API, database và UX độc lập với độ ổn định hoặc chi phí của provider.
@@ -7,6 +9,8 @@ Làm một lát cắt xuyên suốt bằng mock engine trước: đăng nhập, 
 Các mốc dưới đây đi theo đầu ra, chưa gán số tuần vì chưa có thông tin nhân lực và thời hạn. Nhóm có thể chia người làm FE và BE đồng thời sau khi chốt contract.
 
 ## 2. Mốc 1 — Chốt hợp đồng và wireframe
+
+Đã có [planning giao diện và các màn hình tham khảo](planning/frontend-ui.md), kèm [prototype HTML](planning/frontend-preview.html) để nhóm xem và chốt bố cục. Schema API và ứng dụng React sẽ được triển khai theo các mốc dưới đây.
 
 | Frontend | Backend | Đầu ra chung |
 |---|---|---|

@@ -1,5 +1,9 @@
 # Thiết kế frontend
 
+Yêu cầu chức năng và phi chức năng được quản lý tại [requirements.md](requirements.md); các mã FR/NFR/BR dùng để đối chiếu khi triển khai và nghiệm thu.
+
+Xem [planning giao diện](planning/frontend-ui.md) để tham khảo ảnh các màn hình và [prototype tương tác](planning/frontend-preview.html). Các bản phác thảo giúp chốt bố cục trước khi triển khai React.
+
 ## 1. Vai trò và cấu trúc
 
 Frontend giúp người dùng quản lý một phiên phân tích từ lúc nhập yêu cầu đến lúc xem lại kết quả. Các thuật ngữ trên giao diện ưu tiên nghiệp vụ: đối tượng phân tích, ngày dữ liệu, tiến độ, báo cáo và kết luận.
@@ -157,7 +161,7 @@ HTTP client dùng `credentials: include`, gửi `X-CSRF-Token` cho mutation đã
 
 ## 8. Responsive và khả năng truy cập
 
-- Desktop: thanh điều hướng trên, vùng nội dung rộng, timeline và báo cáo đặt cạnh nhau khi đủ chỗ.
+- Desktop: sidebar điều hướng, header theo ngữ cảnh, vùng nội dung rộng; timeline và báo cáo đặt cạnh nhau khi đủ chỗ.
 - Mobile: một cột; bảng lịch sử chuyển thành card, hành động hủy nằm trong vùng dễ nhìn.
 - Form có label, lỗi gắn với trường; dialog quản lý focus và hoạt động bằng bàn phím.
 - Trạng thái có chữ và biểu tượng bên cạnh màu; thông báo tiến độ dùng live region ở mức vừa phải.

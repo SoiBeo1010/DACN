@@ -1,5 +1,7 @@
 # Mô hình dữ liệu
 
+Các yêu cầu và quy tắc nghiệp vụ cần được dữ liệu bảo đảm được quản lý tại [requirements.md](requirements.md), đặc biệt là quyền sở hữu, lifecycle, idempotency và tính nhất quán.
+
 ## 1. Nguyên tắc
 
 PostgreSQL lưu dữ liệu ứng dụng. SQLAlchemy model và Alembic migration được xây từ mô hình dưới đây. UUID là khóa công khai; timestamp dùng `timestamptz` và UTC. Ngày nghiệp vụ dùng `date`.

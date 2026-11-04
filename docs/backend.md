@@ -1,5 +1,7 @@
 # Thiết kế backend
 
+Yêu cầu và quy tắc nghiệp vụ được quản lý tại [requirements.md](requirements.md). Các use case, lifecycle và cơ chế xử lý bên dưới là phương án thực hiện để đối chiếu với mã FR/NFR/BR.
+
 ## 1. Kiến trúc module
 
 Backend là một ứng dụng Python chia module theo nghiệp vụ. API và worker dùng chung domain/service/repository; lõi TradingAgents nằm sau một interface.

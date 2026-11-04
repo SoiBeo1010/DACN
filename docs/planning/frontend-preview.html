@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>DACN — Phác thảo giao diện</title>
+  <style>
+    :root {
+      --canvas: #f5f6f8; --paper: #fff; --ink: #182b35; --muted: #677881;
+      --line: #e4e9ec; --green: #087d68; --green-soft: #e9f5f0;
+      --navy: #142b34; --amber: #9a6212; --amber-soft: #fff6e6;
+      --red: #ae4141; --red-soft: #fff0ef; --blue: #3566ac; --blue-soft: #edf3fc;
+      --radius: 14px; --shadow: 0 5px 24px #142b3405;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font: 14px/1.6 "Segoe UI", Arial, sans-serif; }
+    button, input, select { font: inherit; }
+    button, a, input, select { -webkit-tap-highlight-color: transparent; }
+    button, select { cursor: pointer; }
+    button { color: inherit; }
+    a { color: var(--green); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #53adcf; outline-offset: 3px; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 8px; font-size: 30px; letter-spacing: -.85px; line-height: 1.25; font-weight: 650; }
+    h2 { font-size: 18px; font-weight: 650; line-height: 1.4; margin-bottom: 8px; }
+    h3 { font-size: 15px; margin-bottom: 8px; font-weight: 650; }
+    p { margin-bottom: 14px; }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+    .mono { font-family: Consolas, monospace; font-size: 12px; }
+    .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 1.6px; font-weight: 700; }
+    .icon { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+    .row { display: flex; align-items: center; gap: 12px; }
+    .between { justify-content: space-between; }
+    .wrap { flex-wrap: wrap; }
+    .stack > * + * { margin-top: 20px; }
+    .prototype-bar { min-height: 58px; padding: 10px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: #fff; border-bottom: 1px solid var(--line); }
+    .prototype-title { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; white-space: nowrap; }
+    .prototype-title span { color: var(--muted); font-weight: 500; margin-left: 9px; letter-spacing: .3px; }
+    .preview-controls { display: flex; align-items: center; gap: 10px; }
+    .preview-controls label { color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .preview-controls select { border: 1px solid var(--line); padding: 5px 26px 5px 9px; border-radius: 6px; background: #fff; font-size: 12px; max-width: 210px; }
+    .app-shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: calc(100vh - 58px); }
+    .sidebar { background: var(--navy); color: #b5c8ce; display: flex; flex-direction: column; padding: 29px 17px 20px; }
+    .brand { gap: 10px; padding: 0 10px; margin-bottom: 38px; color: #fff; }
+    .brand strong { font-size: 23px; letter-spacing: 1.8px; line-height: 1; }
+    .brand small { font-size: 10px; letter-spacing: 1.5px; color: #9bb3bc; display: block; margin-top: 7px; }
+    .brand-mark { height: 35px; width: 35px; display: grid; place-items: center; border-radius: 10px; background: #ffffff12; color: #66d4b2; }
+    .nav-label { color: #809ba6; font-size: 10px; letter-spacing: 1.6px; margin: 0 13px 10px; }
+    .nav-item { display: flex; width: 100%; gap: 10px; align-items: center; padding: 12px 13px; margin-bottom: 5px; border: 0; background: transparent; color: #bbced5; text-align: left; border-radius: 9px; font-size: 13px; }
+    .nav-item.active { background: #24434d; color: #fff; }
+    .nav-item:hover { background: #ffffff0c; }
+    .nav-item.active:hover { background: #24434d; }
+    .side-note { margin: 30px 7px 20px; padding: 16px 12px; border: 1px solid #ffffff16; border-radius: 10px; font-size: 12px; color: #adc3cb; }
+    .side-note .tiny-dot { margin-right: 6px; }
+    .side-note p { margin: 7px 0 0; color: #8faab5; font-size: 11px; }
+    .side-bottom { margin-top: auto; padding: 20px 8px 0; }
+    .avatar { width: 33px; height: 33px; display: grid; place-items: center; border-radius: 50%; background: #dcece6; color: #326759; font-weight: 700; font-size: 11px; flex: 0 0 auto; }
+    .side-bottom .avatar { background: #2b4b55; color: #d3e8e6; }
+    .side-bottom strong { color: #e4edef; font-size: 12px; }
+    .logout { margin-top: 18px; padding: 0; background: none; border: none; color: #9bb5bf; font-size: 12px; }
+    .app-main { min-width: 0; }
+    .app-header { display: flex; align-items: center; justify-content: space-between; padding: 19px 40px; border-bottom: 1px solid var(--line); background: #ffffffb3; min-height: 74px; }
+    .breadcrumbs { color: var(--muted); font-size: 12px; }
+    .breadcrumbs strong { color: var(--ink); font-weight: 500; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .content { max-width: 1330px; margin: 0 auto; padding: 34px 40px 40px; }
+    .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 25px; }
+    .page-heading p { margin: 0; font-size: 13px; color: var(--muted); }
+    .page-kicker { font-size: 11px; color: var(--green); letter-spacing: 1.3px; text-transform: uppercase; margin-bottom: 9px; font-weight: 700; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; background: #fff; border: 1px solid #d9e1e5; border-radius: 8px; font-size: 12px; font-weight: 600; line-height: 1.5; white-space: nowrap; }
+    .btn:hover { background: #f2f5f5; }
+    .btn.primary { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 3px 8px #087d6814; }
+    .btn.primary:hover { background: #066955; }
+    .btn.danger { color: var(--red); border-color: #edcece; }
+    .btn.text { padding-left: 0; padding-right: 0; background: transparent; border: 0; color: var(--green); }
+    .btn.full { width: 100%; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 600; white-space: nowrap; line-height: 1.5; }
+    .badge.mock { color: var(--amber); background: var(--amber-soft); border: 1px solid #f2e0bd; }
+    .badge.green { color: var(--green); background: var(--green-soft); }
+    .badge.blue { color: var(--blue); background: var(--blue-soft); }
+    .badge.amber { color: var(--amber); background: var(--amber-soft); }
+    .badge.red { color: var(--red); background: var(--red-soft); }
+    .badge.gray { color: #687780; background: #eef1f3; }
+    .tiny-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
+    .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card-pad { padding: 25px; }
+    .card-title { font-size: 15px; font-weight: 650; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; margin-bottom: 24px; }
+    .stat { padding: 19px 21px; position: relative; }
+    .stat .icon { color: #8c9fa7; position: absolute; top: 23px; right: 20px; width: 17px; }
+    .stat .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .stat strong { font-size: 28px; font-weight: 650; line-height: 1.3; }
+    .stat .small { margin-top: 5px; color: var(--muted); font-size: 10px; }
+    .table-toolbar { padding: 20px 22px; display: flex; align-items: end; gap: 10px; border-bottom: 1px solid var(--line); }
+    .table-toolbar .search { flex: 1; min-width: 150px; }
+    .input-wrap { display: flex; align-items: center; gap: 9px; border: 1px solid #dbe2e7; background: #fff; border-radius: 8px; padding: 0 11px; }
+    .input-wrap .icon { color: #8a9ca4; width: 16px; }
+    input, select { border: 1px solid #dbe2e7; background: #fff; border-radius: 8px; min-height: 40px; padding: 8px 11px; width: 100%; color: var(--ink); }
+    .input-wrap input { border: 0; padding-left: 0; min-width: 0; background: transparent; }
+    input::placeholder { color: #8a99a0; }
+    label.field-label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 7px; }
+    .table-toolbar label.field-label { font-size: 10px; color: var(--muted); font-weight: 500; margin-bottom: 5px; }
+    .table-toolbar select { width: 151px; font-size: 12px; }
+    .table-toolbar input[type=date] { font-size: 12px; width: 136px; }
+    .table-scroll { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; text-align: left; }
+    thead { background: #fbfcfd; }
+    th { font-size: 10px; font-weight: 600; color: #7a8c94; padding: 13px 21px; white-space: nowrap; border-bottom: 1px solid var(--line); }
+    td { padding: 18px 21px; border-bottom: 1px solid #edf0f2; font-size: 12px; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .symbol { display: flex; align-items: center; gap: 10px; }
+    .symbol-box { height: 35px; width: 35px; border-radius: 9px; background: #eff4f2; border: 1px solid #e3ece7; color: #547a6f; display: grid; place-items: center; font-size: 10px; font-weight: 750; flex: 0 0 auto; }
+    .symbol strong { display: block; font-size: 12px; letter-spacing: .2px; }
+    .symbol small { color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .table-link { border: 0; background: transparent; color: var(--green); font-size: 12px; font-weight: 600; padding: 6px 0; }
+    .table-footer { padding: 16px 22px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); display: flex; align-items: center; justify-content: space-between; }
+    .soft-note { display: flex; align-items: center; gap: 8px; margin-top: 17px; font-size: 11px; color: #819198; }
+    .soft-note .icon { height: 15px; width: 15px; }
+    .alert { border: 1px solid #eddfc1; color: #8d641e; background: #fffaf0; padding: 14px 17px; border-radius: 9px; display: flex; align-items: start; gap: 10px; margin-bottom: 20px; font-size: 12px; }
+    .alert p { margin: 0; }
+    .alert strong { display: block; margin-bottom: 2px; }
+    .alert.error { background: var(--red-soft); color: var(--red); border-color: #f1d1ce; }
+    .alert.info { background: var(--blue-soft); color: var(--blue); border-color: #d6e3f6; }
+    .form-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(270px, 1fr); align-items: start; gap: 23px; }
+    .form-section { padding: 25px; border-bottom: 1px solid var(--line); }
+    .section-heading { display: flex; align-items: start; gap: 12px; margin-bottom: 22px; }
+    .section-number { border-radius: 50%; background: var(--green-soft); color: var(--green); width: 27px; height: 27px; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: 0 0 auto; }
+    .section-heading h2 { font-size: 15px; margin: 1px 0 2px; }
+    .section-heading p { font-size: 11px; color: var(--muted); margin: 0; }
+    .instrument-option { display: flex; gap: 12px; align-items: center; margin-top: 12px; padding: 13px; border: 1px solid #bed8cd; border-radius: 9px; background: #f5faf7; }
+    .instrument-option .selected-check { color: var(--green); margin-left: auto; }
+    .help { font-size: 11px; color: var(--muted); margin: 7px 0 0; }
+    .fields-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field-error { color: var(--red); font-size: 11px; margin-top: 6px; }
+    .invalid { border-color: #cd6c62; }
+    .profile-option { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid #bed8cd; border-radius: 9px; background: #f5faf7; margin-top: 4px; }
+    .radio { width: 16px; height: 16px; border: 4px solid var(--green); border-radius: 50%; background: white; flex: 0 0 auto; }
+    .profile-option strong { display: block; font-size: 12px; }
+    .profile-option p { margin: 3px 0 0; font-size: 11px; color: var(--muted); }
+    .form-actions { padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; }
+    .summary-list { margin: 19px 0; }
+    .summary-list div { display: flex; align-items: start; justify-content: space-between; gap: 15px; padding: 11px 0; border-bottom: 1px solid #edf0f1; font-size: 12px; }
+    .summary-list div:last-child { border: 0; }
+    .summary-list dt { color: var(--muted); }
+    .summary-list dd { margin: 0; font-weight: 550; text-align: right; }
+    .summary-flow { padding: 17px; background: #f6f8f8; border-radius: 9px; }
+    .summary-flow p { margin: 0 0 12px; font-size: 11px; color: var(--muted); }
+    .summary-flow ol { padding: 0; margin: 0; list-style: none; }
+    .summary-flow li { display: flex; align-items: center; gap: 10px; font-size: 12px; margin: 12px 0; }
+    .summary-flow li span { width: 20px; height: 20px; border: 1px solid #d8e2df; display: grid; place-items: center; border-radius: 50%; color: #6f8a7e; font-size: 10px; }
+    .back-link { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 15px; color: var(--muted); font-size: 12px; }
+    .detail-heading { display: flex; align-items: center; gap: 13px; }
+    .detail-heading .symbol-box { width: 48px; height: 48px; font-size: 12px; border-radius: 12px; background: #fff; }
+    .detail-heading h1 { font-size: 27px; margin: 0 0 4px; }
+    .meta-strip { display: flex; gap: 23px; flex-wrap: wrap; margin-top: 14px; color: var(--muted); font-size: 11px; }
+    .tabs { display: flex; gap: 25px; border-bottom: 1px solid var(--line); margin: 25px 0 24px; }
+    .tab { border: 0; border-bottom: 2px solid transparent; background: none; padding: 11px 2px 12px; color: var(--muted); font-size: 12px; font-weight: 600; }
+    .tab.active { color: var(--green); border-bottom-color: var(--green); }
+    .tab span { display: inline-block; margin-left: 5px; font-size: 10px; background: #edf0f1; padding: 0 5px; border-radius: 4px; color: #6b7f85; }
+    .detail-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(270px, 1fr); gap: 23px; align-items: start; }
+    .run-summary { padding: 26px; }
+    .status-orb { width: 45px; height: 45px; background: var(--blue-soft); color: var(--blue); border-radius: 12px; display: grid; place-items: center; margin-bottom: 18px; }
+    .status-orb.green { background: var(--green-soft); color: var(--green); }
+    .status-orb.amber { background: var(--amber-soft); color: var(--amber); }
+    .status-orb.red { background: var(--red-soft); color: var(--red); }
+    .status-orb.gray { background: #eef1f3; color: #6a7c83; }
+    .run-summary h2 { font-size: 21px; margin-bottom: 8px; }
+    .run-summary > p { color: var(--muted); font-size: 12px; max-width: 520px; }
+    .run-metrics { display: flex; gap: 30px; margin: 21px 0 0; padding-top: 19px; border-top: 1px solid var(--line); }
+    .run-metrics span { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .run-metrics strong { font-size: 16px; font-weight: 600; }
+    .stepper { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 23px; }
+    .stepper .line { height: 4px; border-radius: 3px; background: #e6ecef; margin-bottom: 8px; }
+    .stepper .done .line { background: #218d74; }
+    .stepper .current .line { background: #6892ce; }
+    .stepper .stopped .line { background: #b8c2c8; }
+    .stepper span { color: var(--muted); font-size: 10px; }
+    .stepper .done span { color: var(--green); }
+    .section-card { padding: 22px 25px; }
+    .report-link { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #edf0f1; gap: 10px; }
+    .report-link:last-child { border: 0; padding-bottom: 0; }
+    .report-link .row { gap: 11px; }
+    .report-link .icon { color: #7c9594; width: 18px; }
+    .report-link strong { display: block; font-size: 12px; font-weight: 600; }
+    .report-link small { font-size: 10px; color: var(--muted); }
+    .timeline { list-style: none; padding: 5px 0 0; margin: 0; }
+    .timeline li { display: flex; gap: 12px; position: relative; padding: 0 0 22px; }
+    .timeline li:last-child { padding-bottom: 0; }
+    .timeline li:not(:last-child)::before { content: ""; width: 1px; background: #e4eae7; position: absolute; top: 14px; bottom: 0; left: 8px; }
+    .timeline-point { width: 17px; height: 17px; border: 4px solid #e7f4ed; border-radius: 50%; background: #249271; flex: 0 0 auto; margin-top: 2px; z-index: 1; }
+    .timeline-point.current { background: #467ec9; border-color: #e6effb; }
+    .timeline strong { display: block; font-size: 12px; font-weight: 550; }
+    .timeline p { margin: 3px 0 0; font-size: 10px; color: var(--muted); }
+    .decision-card { padding: 25px; border-top: 3px solid var(--green); }
+    .decision-card.review { border-top-color: #c18a34; }
+    .decision-title { font-size: 27px; letter-spacing: -.6px; color: var(--green); margin: 8px 0; }
+    .decision-card.review .decision-title { color: var(--amber); }
+    .decision-card > p { color: var(--muted); font-size: 12px; max-width: 560px; }
+    .evidence-list { padding: 0; list-style: none; margin: 20px 0 0; }
+    .evidence-list li { display: flex; align-items: start; gap: 11px; padding: 13px 0; border-top: 1px solid var(--line); font-size: 12px; }
+    .evidence-list .icon { color: var(--green); width: 16px; margin-top: 2px; }
+    .evidence-list strong { display: block; font-size: 12px; margin-bottom: 3px; }
+    .evidence-list span { color: var(--muted); }
+    .report-layout { display: grid; grid-template-columns: 235px minmax(0, 1fr); gap: 22px; align-items: start; }
+    .report-nav { padding: 11px; }
+    .report-nav h3 { padding: 10px 11px 5px; font-size: 11px; color: var(--muted); font-weight: 500; }
+    .report-nav button { display: flex; align-items: center; gap: 9px; padding: 12px 11px; width: 100%; text-align: left; border: 0; border-radius: 7px; background: transparent; font-size: 12px; margin: 3px 0; }
+    .report-nav button.active { background: var(--green-soft); color: var(--green); font-weight: 600; }
+    .report-nav .icon { width: 16px; }
+    .report-article { padding: 31px 34px; }
+    .report-article h2 { font-size: 23px; letter-spacing: -.4px; }
+    .report-article h3 { margin-top: 25px; font-size: 15px; }
+    .report-article p, .report-article li { font-size: 12px; color: #5f717a; line-height: 1.85; }
+    .report-article ul { padding-left: 19px; }
+    .report-meta { padding-bottom: 20px; border-bottom: 1px solid var(--line); margin-bottom: 23px; font-size: 10px; color: var(--muted); }
+    .quote-block { margin: 21px 0; padding: 15px 18px; border-left: 3px solid var(--green); background: #f4f8f6; font-size: 12px; color: #46685e; }
+    .report-article table th, .report-article table td { padding: 12px; font-size: 11px; }
+    .empty-state { padding: 65px 20px; text-align: center; }
+    .empty-state .status-orb { margin: 0 auto 18px; }
+    .empty-state h2 { font-size: 18px; }
+    .empty-state p { color: var(--muted); font-size: 12px; }
+    .login-shell { min-height: calc(100vh - 58px); display: grid; grid-template-columns: 1fr 1fr; }
+    .login-story { background: var(--navy); color: #fff; padding: 48px 64px; display: flex; flex-direction: column; overflow: hidden; }
+    .login-story .brand { margin-bottom: 90px; padding: 0; }
+    .login-story h1 { font-size: 43px; font-weight: 500; max-width: 450px; line-height: 1.28; letter-spacing: -1.3px; }
+    .login-story h1 em { color: #8fddbc; font-style: normal; }
+    .login-story > p { color: #a6c0ca; font-size: 14px; line-height: 1.9; max-width: 405px; }
+    .story-steps { margin: 32px 0 50px; border: 1px solid #ffffff1a; border-radius: 14px; background: #ffffff04; padding: 21px; max-width: 430px; }
+    .story-step { display: flex; gap: 13px; align-items: center; margin-bottom: 22px; }
+    .story-step:last-child { margin-bottom: 0; }
+    .story-step > span { width: 29px; height: 29px; border: 1px solid #ffffff23; border-radius: 8px; display: grid; place-items: center; font-size: 11px; color: #a8d4c8; }
+    .story-step strong { display: block; font-size: 12px; font-weight: 550; }
+    .story-step small { font-size: 11px; color: #94afb9; }
+    .login-story footer { margin-top: auto; font-size: 11px; color: #829fab; }
+    .login-panel { display: grid; place-items: center; padding: 50px 40px; background: #fbfcfc; }
+    .login-form { width: 100%; max-width: 355px; }
+    .login-form h2 { font-size: 29px; letter-spacing: -.7px; margin: 16px 0 8px; }
+    .login-form > p { font-size: 12px; color: var(--muted); margin-bottom: 30px; }
+    .login-form .field { margin-bottom: 20px; }
+    .password-toggle { background: none; border: 0; padding: 5px 0; display: flex; color: var(--muted); }
+    .login-form .btn.full { padding: 12px; margin-top: 4px; }
+    .login-help { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); text-align: center; }
+    dialog { border: 1px solid var(--line); border-radius: 15px; width: min(440px, calc(100% - 36px)); padding: 28px; box-shadow: 0 22px 90px #142b3429; color: var(--ink); }
+    dialog::backdrop { background: #1226316b; }
+    dialog p { font-size: 13px; color: var(--muted); }
+    .dialog-actions { display: flex; justify-content: end; gap: 10px; margin-top: 25px; }
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 12px 20px; background: var(--navy); color: #fff; border-radius: 10px; font-size: 12px; z-index: 5; box-shadow: 0 8px 30px #142b3429; max-width: calc(100% - 30px); }
+    #toast[hidden] { display: none; }
+    @media (min-width: 1700px) { .content { padding-top: 45px; } }
+    @media (max-width: 1200px) {
+      .content { padding: 28px 25px; }
+      .app-header { padding: 17px 25px; }
+      .app-shell { grid-template-columns: 195px minmax(0, 1fr); }
+      td, th { padding-left: 16px; padding-right: 16px; }
+      .table-toolbar { flex-wrap: wrap; }
+      .table-toolbar .search { flex-basis: 100%; }
+      .form-layout, .detail-grid { gap: 17px; }
+      .login-story { padding: 42px; }
+      .login-story h1 { font-size: 36px; }
+    }
+    @media (max-width: 900px) {
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar { flex-direction: row; align-items: center; padding: 14px 22px; gap: 12px; }
+      .sidebar .brand { padding: 0; margin: 0 auto 0 0; }
+      .sidebar .brand strong { font-size: 18px; }
+      .sidebar .brand small, .sidebar .nav-label, .side-note, .side-bottom { display: none; }
+      .sidebar nav { display: flex; gap: 4px; }
+      .nav-item { width: auto; margin: 0; padding: 9px 11px; font-size: 12px; }
+      .app-header { min-height: 60px; padding-top: 12px; padding-bottom: 12px; }
+      .form-layout, .detail-grid { grid-template-columns: minmax(0, 1fr); }
+      .form-layout > aside { grid-row: 1; }
+      .summary-flow { display: none; }
+      .report-layout { grid-template-columns: 185px minmax(0, 1fr); gap: 15px; }
+      .report-article { padding: 25px; }
+      .login-story { padding: 35px; }
+      .login-story .brand { margin-bottom: 65px; }
+      .login-story h1 { font-size: 32px; }
+      .prototype-title span { display: none; }
+    }
+    @media (max-width: 600px) {
+      .prototype-bar { padding: 10px 14px; align-items: start; flex-wrap: wrap; gap: 8px; }
+      .prototype-title { font-size: 9px; letter-spacing: 1px; }
+      .preview-controls { width: 100%; gap: 7px; }
+      .preview-controls label { display: none; }
+      .preview-controls select { flex: 1; width: 50%; max-width: none; min-width: 0; font-size: 11px; }
+      .sidebar { padding: 13px 16px; }
+      .sidebar .brand-mark { width: 29px; height: 29px; }
+      .nav-item { font-size: 0; gap: 0; padding: 9px; }
+      .nav-item .icon { width: 19px; }
+      .content { padding: 25px 16px; }
+      .app-header { padding: 12px 16px; }
+      .header-right .small { display: none; }
+      .header-right .avatar { display: none; }
+      .badge.mock { font-size: 9px; }
+      h1 { font-size: 24px; }
+      .page-heading { align-items: start; gap: 14px; flex-wrap: wrap; }
+      .page-heading p { font-size: 12px; }
+      .page-heading > .btn { width: 100%; }
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .stat { padding: 15px; }
+      .stat strong { font-size: 24px; }
+      .stat .icon { right: 13px; top: 18px; }
+      .table-toolbar { padding: 16px; gap: 10px; }
+      .table-toolbar .search { flex-basis: 100%; }
+      .table-toolbar > .filter { flex: 1 1 calc(50% - 10px); min-width: 0; }
+      .table-toolbar select, .table-toolbar input[type=date] { width: 100%; }
+      .table-toolbar > .filter.status-filter { flex-basis: 100%; }
+      .table-toolbar > .btn { width: 100%; }
+      .table-scroll { overflow: visible; }
+      table, tbody, tr, td { display: block; }
+      thead { display: none; }
+      tbody tr { display: grid; grid-template-columns: 1fr 1fr; gap: 13px 6px; padding: 18px 16px; border-bottom: 1px solid var(--line); }
+      td { padding: 0; border: 0; font-size: 11px; }
+      td:first-child { grid-column: 1 / -1; }
+      td[data-label]::before { content: attr(data-label); display: block; color: #8a999f; font-size: 9px; margin-bottom: 5px; }
+      td:last-child { grid-column: 2; text-align: right; align-self: end; }
+      .symbol small { white-space: normal; }
+      .table-footer { padding: 15px; }
+      .form-section, .card-pad, .run-summary, .section-card, .decision-card { padding: 20px; }
+      .form-actions { padding: 17px 20px; gap: 15px; }
+      .fields-two { grid-template-columns: 1fr; }
+      .detail-heading h1 { font-size: 24px; }
+      .meta-strip { gap: 8px 17px; }
+      .tabs { gap: 21px; margin-top: 20px; }
+      .run-metrics { gap: 23px; flex-wrap: wrap; }
+      .run-summary h2 { font-size: 19px; }
+      .detail-grid { gap: 17px; }
+      .report-layout { grid-template-columns: 1fr; }
+      .report-nav { padding: 9px; display: flex; gap: 6px; overflow-x: auto; }
+      .report-nav h3 { display: none; }
+      .report-nav button { width: auto; white-space: nowrap; font-size: 11px; padding: 10px; }
+      .report-article { padding: 22px 19px; }
+      .report-article h2 { font-size: 21px; }
+      .report-article table { display: table; }
+      .report-article thead { display: table-header-group; }
+      .report-article tbody { display: table-row-group; }
+      .report-article tr { display: table-row; }
+      .report-article td, .report-article th { display: table-cell; font-size: 10px; padding: 9px; }
+      .login-shell { grid-template-columns: 1fr; }
+      .login-story { display: none; }
+      .login-panel { min-height: calc(100vh - 85px); padding: 35px 25px; }
+      .login-form { max-width: 370px; }
+      .decision-title { font-size: 24px; }
+      .stepper { gap: 7px; }
+      .stepper span { font-size: 9px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+    @media print {
+      .prototype-bar, .sidebar, .app-header, .btn, .back-link { display: none; }
+      .app-shell, .detail-grid, .report-layout { display: block; }
+      .content { padding: 0; }
+      .card { box-shadow: none; break-inside: avoid; margin-bottom: 20px; }
+      body { background: #fff; }
+    }
+  </style>
+</head>
+<body>
+  <svg aria-hidden="true" width="0" height="0" style="position:absolute;overflow:hidden">
+    <defs>
+      <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5m5-5-5 5 5 5"/></symbol>
+      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></symbol>
+      <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+      <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5"/></symbol>
+      <symbol id="i-activity" viewBox="0 0 24 24"><path d="M2 12h5l3-8 4 16 3-8h5"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="m12 3 10 18H2zM12 9v4M12 17h.01"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></symbol>
+      <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12"/><circle cx="12" cy="12" r="3"/></symbol>
+      <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 4H4v16h5M10 12h11m-4-4 4 4-4 4"/></symbol>
+      <symbol id="i-stop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3"/></symbol>
+      <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5M5 8a8 8 0 0 1 13-3l2 3M4 16l2 3a8 8 0 0 0 13-3"/></symbol>
+      <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18M7 15l4-5 4 3 5-8"/></symbol>
+    </defs>
+  </svg>
+  <header class="prototype-bar">
+    <div class="prototype-title">DACN · UI PLANNING <span>Bản phác thảo tương tác</span></div>
+    <div class="preview-controls">
+      <label for="screen-picker">Màn hình</label>
+      <select id="screen-picker" aria-label="Chọn màn hình tham khảo">
+        <option value="login">01 · Đăng nhập</option>
+        <option value="history" selected>02 · Lịch sử phân tích</option>
+        <option value="create">03 · Tạo phiên phân tích</option>
+        <option value="running">04 · Theo dõi tiến độ</option>
+        <option value="result">05 · Kết quả phân tích</option>
+        <option value="report">06 · Đọc báo cáo</option>
+      </select>
+      <label for="scenario-picker">Trạng thái</label>
+      <select id="scenario-picker" aria-label="Chọn trạng thái minh họa"></select>
+    </div>
+  </header>
+  <div id="app"></div>
+  <dialog id="cancel-dialog" aria-labelledby="cancel-title">
+    <h2 id="cancel-title">Dừng phiên phân tích?</h2>
+    <p>Các báo cáo đã hoàn thành sẽ được giữ lại. Phiên đang chạy cần một khoảng thời gian để dừng.</p>
+    <div class="dialog-actions"><button class="btn" data-action="close-dialog">Tiếp tục phân tích</button><button class="btn danger" data-action="confirm-cancel">Yêu cầu hủy</button></div>
+  </dialog>
+  <div id="toast" role="status" aria-live="polite" hidden></div>
+  <script>
+    // Standalone design reference: no API, network requests, credentials or persistent storage.
+    const icon = name => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
+    const mockBadge = '<span class="badge mock"><span class="tiny-dot"></span>DỮ LIỆU GIẢ LẬP</span>';
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    const state = { screen: 'history', scenario: 'default', tab: 'overview', report: 'market', runId: null, filters: null, reportReturn: 'result' };
+    const screens = ['login', 'history', 'create', 'running', 'result', 'report'];
+    const scenarios = {
+      login: [['default','Mặc định'],['invalid','Đăng nhập không thành công']],
+      history: [['default','Có dữ liệu'],['empty','Chưa có phiên'],['offline','Mất kết nối']],
+      create: [['default','Đã chọn đối tượng'],['validation','Lỗi nhập dữ liệu']],
+      running: [['default','Đang chạy'],['queued','Đang chờ'],['cancel_requested','Đang yêu cầu hủy'],['cancelled','Đã hủy'],['failed','Thất bại'],['offline','Mất kết nối']],
+      result: [['default','Kết luận hợp lệ'],['review','Cần xem xét']],
+      report: [['default','Báo cáo hoàn chỉnh']]
+    };
+    const rows = [
+      {id:'104',symbol:'DEMO',name:'Doanh nghiệp giả lập A',date:'03/11/2026',iso:'2026-11-03',status:'running',created:'04/11 · 14:00',time:'14:00:00',rating:null},
+      {id:'103',symbol:'DEMO-B',name:'Doanh nghiệp giả lập B',date:'02/11/2026',iso:'2026-11-02',status:'succeeded',created:'04/11 · 10:32',time:'10:32:00',rating:'Overweight'},
+      {id:'102',symbol:'DEMO-C',name:'Doanh nghiệp giả lập C',date:'02/11/2026',iso:'2026-11-02',status:'succeeded',created:'03/11 · 15:10',time:'15:10:00',rating:'review'},
+      {id:'101',symbol:'DEMO',name:'Doanh nghiệp giả lập A',date:'01/11/2026',iso:'2026-11-01',status:'queued',created:'03/11 · 09:20',time:'09:20:00',rating:null},
+      {id:'100',symbol:'DEMO-B',name:'Doanh nghiệp giả lập B',date:'30/10/2026',iso:'2026-10-30',status:'failed',created:'02/11 · 16:40',time:'16:40:00',rating:null},
+      {id:'099',symbol:'DEMO-C',name:'Doanh nghiệp giả lập C',date:'30/10/2026',iso:'2026-10-30',status:'cancelled',created:'02/11 · 14:05',time:'14:05:00',rating:null}
+    ];
+    const reportSections = [
+      ['market','Phân tích kỹ thuật','chart'],
+      ['news','Phân tích tin tức','file'],
+      ['research','Luận điểm nghiên cứu','grid'],
+      ['risk','Đánh giá rủi ro','alert']
+    ];
+    const statusLabels = {
+      queued:['gray','Đang chờ'], running:['blue','Đang chạy'], cancel_requested:['amber','Đang yêu cầu hủy'],
+      succeeded:['green','Hoàn thành'], failed:['red','Thất bại'], cancelled:['gray','Đã hủy']
+    };
+    const statusBadge = status => {
+      const [color,label] = statusLabels[status];
+      return `<span class="badge ${color}"><span class="tiny-dot"></span>${label}</span>`;
+    };
+    const brand = () => `<div class="brand row"><span class="brand-mark">${icon('chart')}</span><div><strong>DACN</strong><small>RESEARCH WORKSPACE</small></div></div>`;
+
+    function shell(content, title) {
+      return `<div class="app-shell">
+        <aside class="sidebar">
+          ${brand()}
+          <div class="nav-label">KHÔNG GIAN LÀM VIỆC</div>
+          <nav aria-label="Điều hướng chính">
+            <button class="nav-item ${state.screen !== 'create' ? 'active' : ''}" data-screen="history" aria-label="Lịch sử phân tích">${icon('grid')}Phiên phân tích</button>
+            <button class="nav-item ${state.screen === 'create' ? 'active' : ''}" data-screen="create" aria-label="Tạo phân tích">${icon('plus')}Tạo phân tích</button>
+          </nav>
+          <div class="side-note"><span class="tiny-dot" style="color:#81c7ae"></span>Không gian nghiên cứu<p>Theo dõi từng bước.<br>Đọc kết quả trong ngữ cảnh.</p></div>
+          <div class="side-bottom"><div class="row"><span class="avatar">SV</span><div><strong>Sinh viên</strong><div class="small">Tài khoản minh họa</div></div></div><button class="logout row" data-screen="login">${icon('out')}Đăng xuất</button></div>
+        </aside>
+        <div class="app-main"><header class="app-header"><div class="breadcrumbs">Không gian làm việc <span style="margin:0 10px;color:#b5c1c7">/</span> <strong>${title}</strong></div><div class="header-right">${mockBadge}<span class="avatar">SV</span></div></header><main class="content" id="main-content">${content}</main></div>
+      </div>`;
+    }
+
+    function loginScreen() {
+      return `<div class="login-shell"><section class="login-story">${brand()}
+        <div class="eyebrow" style="color:#82b3a9;margin-bottom:19px">MỘT KHÔNG GIAN. NHIỀU GÓC NHÌN.</div>
+        <h1>Từ dữ liệu đến<br>một quyết định<br><em>có cơ sở.</em></h1>
+        <p>Tạo phiên phân tích, theo dõi quá trình nghiên cứu và đọc những luận điểm đứng sau kết luận.</p>
+        <div class="story-steps"><div class="story-step"><span>01</span><div><strong>Đặt câu hỏi</strong><small>Chọn đối tượng và ngày phân tích</small></div></div><div class="story-step"><span>02</span><div><strong>Theo dõi quá trình</strong><small>Báo cáo được tập hợp theo từng bước</small></div></div><div class="story-step"><span>03</span><div><strong>Hiểu kết luận</strong><small>Đọc nhận định, rủi ro và giới hạn dữ liệu</small></div></div></div>
+        <footer>DACN / Không gian phân tích và nghiên cứu</footer>
+      </section><section class="login-panel"><form class="login-form" id="login-form">
+        <div class="page-kicker">CHÀO MỪNG TRỞ LẠI</div><h2>Đăng nhập</h2><p>Tiếp tục với các phiên phân tích của bạn.</p>
+        ${state.scenario === 'invalid' ? `<div class="alert error" role="alert">${icon('alert')}<p>Email hoặc mật khẩu chưa đúng. Vui lòng thử lại.</p></div>` : ''}
+        <div class="field"><label class="field-label" for="email">Email</label><input id="email" type="email" placeholder="ban@example.com" autocomplete="off" required></div>
+        <div class="field"><label class="field-label" for="password">Mật khẩu</label><div class="input-wrap"><input id="password" type="password" placeholder="Nhập mật khẩu" autocomplete="off" required><button type="button" class="password-toggle" data-action="toggle-password" aria-label="Hiện mật khẩu">${icon('eye')}</button></div></div>
+        <button class="btn primary full" type="submit">Đăng nhập ${icon('arrow')}</button>
+        <div class="login-help">Tài khoản được cấp bởi nhóm quản trị.<br>Cần hỗ trợ? Liên hệ người phụ trách dự án.</div>
+        <button class="btn text full" type="button" data-screen="history" style="margin-top:20px">Xem không gian minh họa ${icon('arrow')}</button>
+        <p class="help" style="text-align:center;margin-top:12px">Bản phác thảo · Không cần nhập thông tin thật</p>
+      </form></section></div>`;
+    }
+
+    function historyScreen() {
+      const empty = state.scenario === 'empty';
+      const list = empty ? [] : rows;
+      const stats = [
+        ['Phiên trong danh sách',String(list.length),'grid','Dữ liệu đang hiển thị'],
+        ['Đang hoạt động',String(list.filter(r=>['queued','running'].includes(r.status)).length),'activity','Đang chờ và đang chạy'],
+        ['Đã hoàn thành',String(list.filter(r=>r.status==='succeeded').length),'check','Có kết quả để xem'],
+        ['Cần xem xét',String(list.filter(r=>r.rating==='review').length),'alert','Cần đọc thêm ngữ cảnh']
+      ];
+      return shell(`<div class="page-heading"><div><div class="page-kicker">KHÔNG GIAN NGHIÊN CỨU</div><h1>Phiên phân tích</h1><p>Mọi yêu cầu, tiến trình và kết quả của bạn ở cùng một nơi.</p></div><button class="btn primary" data-screen="create">${icon('plus')}Tạo phân tích</button></div>
+        ${state.scenario === 'offline' ? `<div class="alert info" role="status">${icon('info')}<div><strong>Đang mất kết nối</strong><p>Dữ liệu gần nhất vẫn được giữ lại. <button class="table-link" data-action="restore">Kết nối lại</button></p></div></div>` : ''}
+        <div class="stats-grid">${stats.map(([label,count,glyph,note])=>`<div class="card stat">${icon(glyph)}<div class="stat-label">${label}</div><strong>${count}</strong><div class="small">${note}</div></div>`).join('')}</div>
+        <section class="card" aria-label="Danh sách phiên phân tích"><form id="filter-form" class="table-toolbar">
+          <div class="search"><label class="field-label" for="history-search">Tìm đối tượng</label><div class="input-wrap">${icon('search')}<input id="history-search" placeholder="Tìm theo mã hoặc tên..." value="${escapeHtml(state.filters?.query || '')}"></div></div>
+          <div class="filter status-filter"><label class="field-label" for="status-filter">Trạng thái</label><select id="status-filter"><option value="all">Tất cả trạng thái</option><option value="running">Đang chạy</option><option value="queued">Đang chờ</option><option value="succeeded">Hoàn thành</option><option value="failed">Thất bại</option><option value="cancelled">Đã hủy</option></select></div>
+          <div class="filter"><label class="field-label" for="from-date">Ngày tạo từ</label><input type="date" id="from-date" aria-label="Ngày tạo từ"></div>
+          <div class="filter"><label class="field-label" for="to-date">Đến ngày</label><input type="date" id="to-date" aria-label="Ngày tạo đến"></div>
+          <button class="btn" type="submit">Áp dụng</button>
+        </form>
+        <div class="table-scroll"><table><thead><tr><th>ĐỐI TƯỢNG</th><th>NGÀY DỮ LIỆU</th><th>TRẠNG THÁI</th><th>KẾT LUẬN</th><th>TẠO LÚC</th><th></th></tr></thead><tbody id="history-rows">${historyRows(list)}</tbody></table></div>
+        <div class="empty-state" id="no-filter-results" hidden><div class="status-orb">${icon('search')}</div><h2>Không có phiên phù hợp</h2><p>Thử đổi bộ lọc hoặc tìm một đối tượng khác.</p><button class="btn" data-action="clear-filters">Xóa bộ lọc</button></div>
+        ${empty ? `<div class="empty-state"><div class="status-orb green">${icon('plus')}</div><h2>Bắt đầu phiên phân tích đầu tiên</h2><p>Chọn đối tượng và ngày dữ liệu để tạo một góc nhìn mới.</p><button class="btn primary" data-screen="create">${icon('plus')}Tạo phân tích</button></div>` : `<div class="table-footer"><span id="row-count">Hiển thị ${list.length} phiên</span><span>Đã hiển thị tất cả</span></div>`}
+        </section><div class="soft-note">${icon('info')}Các số liệu trên chỉ phản ánh những phiên đang có trong danh sách minh họa.</div>`, 'Phiên phân tích');
+    }
+
+    function historyRows(list) {
+      return list.map(r=>`<tr><td><div class="symbol"><div class="symbol-box">${r.symbol==='DEMO'?'D':r.symbol.slice(-1)}</div><div><strong>${r.symbol}</strong><small>${r.name} · Sàn DEMO</small></div></div></td><td data-label="Ngày dữ liệu">${r.date}</td><td data-label="Trạng thái">${statusBadge(r.status)}</td><td data-label="Kết luận">${r.rating==='review'?'<span class="badge amber">Cần xem xét</span>':r.rating?'<span class="badge green">Tăng tỷ trọng</span>':'<span class="muted">Chưa có kết luận</span>'}</td><td data-label="Tạo lúc"><span class="muted">${r.created}</span></td><td><button class="table-link row" data-run="${r.id}" aria-label="Xem phiên ${r.symbol} ${r.id}">Chi tiết ${icon('arrow')}</button></td></tr>`).join('');
+    }
+
+    function createScreen() {
+      const invalid = state.scenario === 'validation';
+      return shell(`<div class="page-heading"><div><div class="page-kicker">THÊM MỘT GÓC NHÌN</div><h1>Tạo phiên phân tích</h1><p>Chọn đối tượng và thời điểm dữ liệu bạn muốn tìm hiểu.</p></div><button class="btn" data-screen="history">${icon('back')}Về danh sách</button></div>
+      <div class="form-layout"><form class="card" id="create-form">
+        <section class="form-section"><div class="section-heading"><span class="section-number">1</span><div><h2>Đối tượng phân tích</h2><p>Tìm theo mã hoặc tên, kiểm tra sàn trước khi chọn.</p></div></div>
+          <label class="field-label" for="instrument-search">Mã hoặc tên đối tượng</label><div class="input-wrap">${icon('search')}<input id="instrument-search" placeholder="Tìm mã hoặc tên..." value="DEMO" autocomplete="off"></div>
+          <div class="instrument-option"><span class="symbol-box">D</span><div><strong style="font-size:12px">DEMO</strong><div class="small muted">Doanh nghiệp giả lập A · Sàn DEMO</div></div><span class="selected-check">${icon('check')}</span></div>
+          <p class="help" id="instrument-hint">Đã chọn đối tượng minh họa · USD · Asia/Ho_Chi_Minh</p>
+        </section>
+        <section class="form-section"><div class="section-heading"><span class="section-number">2</span><div><h2>Thời điểm & ngôn ngữ</h2><p>Kết quả được đặt trong ngữ cảnh của ngày đã chọn.</p></div></div>
+          <div class="fields-two"><div><label class="field-label" for="analysis-date">Ngày dữ liệu</label><input id="analysis-date" type="date" value="${invalid?'2026-11-05':'2026-11-03'}" class="${invalid?'invalid':''}" aria-describedby="date-hint" required><div id="date-hint" class="${invalid?'field-error':'help'}">${invalid?'Ngày vượt phạm vi được hỗ trợ. Chọn ngày từ 01/01 đến 04/11/2026.':'Có dữ liệu từ 01/01 đến 04/11/2026.'}</div></div>
+          <div><label class="field-label" for="language">Ngôn ngữ báo cáo</label><select id="language"><option value="vi">Tiếng Việt</option><option value="en">English</option></select><p class="help">Áp dụng cho nội dung báo cáo.</p></div></div>
+        </section>
+        <section class="form-section"><div class="section-heading"><span class="section-number">3</span><div><h2>Cấu hình phân tích</h2><p>Lựa chọn phạm vi phù hợp với nhu cầu của bạn.</p></div></div>
+          <label class="profile-option" for="profile-standard"><input id="profile-standard" type="radio" name="profile" value="standard" checked style="width:16px;min-height:16px;accent-color:var(--green)"><span><strong>Tiêu chuẩn</strong><p>Phân tích dữ liệu, tổng hợp luận điểm và đánh giá rủi ro.</p></span></label>
+        </section>
+        <div class="form-actions"><button class="btn text" type="button" data-screen="history">Quay lại</button><button class="btn primary" type="submit">Bắt đầu phân tích ${icon('arrow')}</button></div>
+      </form><aside class="card card-pad"><div class="row between"><span class="card-title">Tóm tắt yêu cầu</span><span class="badge gray">Phiên mới</span></div>
+        <dl class="summary-list"><div><dt>Đối tượng</dt><dd>DEMO · Sàn DEMO</dd></div><div><dt>Ngày dữ liệu</dt><dd id="summary-date">${invalid?'05/11/2026':'03/11/2026'}</dd></div><div><dt>Cấu hình</dt><dd>Tiêu chuẩn</dd></div><div><dt>Ngôn ngữ</dt><dd id="summary-language">Tiếng Việt</dd></div><div><dt>Nguồn dữ liệu</dt><dd>${mockBadge}</dd></div></dl>
+        <div class="summary-flow"><p>SAU KHI BẠN BẮT ĐẦU</p><ol><li><span>1</span>Yêu cầu được tiếp nhận</li><li><span>2</span>Theo dõi tiến độ từng bước</li><li><span>3</span>Đọc báo cáo và kết luận</li></ol></div><p class="help" style="margin-top:18px">Bạn có thể rời trang và mở lại phiên từ lịch sử.</p>
+      </aside></div>`, 'Tạo phiên phân tích');
+    }
+
+    function selectedRun() {
+      const fallback = state.screen==='running' ? rows[0] : rows[1];
+      const run=rows.find(r=>r.id===state.runId);
+      return run || fallback;
+    }
+    function detailHeader(run, status) {
+      return `<a class="back-link" href="#history">${icon('back')}Quay lại danh sách</a><div class="page-heading" style="margin-bottom:0"><div><div class="detail-heading"><div class="symbol-box">D</div><div><h1>${run.symbol} <span class="muted" style="font-size:16px;font-weight:400">/ Phân tích</span></h1><p>${run.name} · Sàn DEMO</p></div></div><div class="meta-strip"><span>Ngày dữ liệu <strong style="color:#415963">${run.date}</strong></span><span>Cấu hình Tiêu chuẩn</span><span class="mono">#PA-${run.id}</span></div></div><div class="row wrap">${statusBadge(status)}${['queued','running'].includes(status)?`<button class="btn danger" data-action="cancel">${icon('stop')}Yêu cầu hủy</button>`:['failed','cancelled'].includes(status)?`<button class="btn primary" data-action="retry">${icon('refresh')}Thử lại</button>`:''}</div></div>`;
+    }
+    function tabs(active) {
+      return `<div class="tabs" role="tablist" aria-label="Nội dung phiên"><button role="tab" aria-selected="${active==='overview'}" class="tab ${active==='overview'?'active':''}" data-tab="overview">Tổng quan</button><button role="tab" aria-selected="${active==='reports'}" class="tab ${active==='reports'?'active':''}" data-tab="reports">Báo cáo <span>${state.screen==='running'?(state.scenario==='queued'?'0':'2'):'4'}</span></button><button role="tab" aria-selected="${active==='timeline'}" class="tab ${active==='timeline'?'active':''}" data-tab="timeline">Tiến trình</button></div>`;
+    }
+    function reportList(complete=false) {
+      const list = complete ? reportSections : reportSections.slice(0,2);
+      return `<section class="card section-card"><div class="row between"><h2 style="font-size:15px;margin:0">Báo cáo đã sẵn sàng</h2><span class="small muted">${list.length} phần</span></div>${list.map(([key,title,glyph])=>`<div class="report-link"><div class="row">${icon(glyph)}<div><strong>${title}</strong><small>Đã hoàn thành · Dữ liệu giả lập</small></div></div><button class="table-link" data-report="${key}" aria-label="Đọc ${title}">Đọc ${icon('arrow')}</button></div>`).join('')}</section>`;
+    }
+    function timelineCard(complete=false) {
+      const events = state.screen==='running'&&state.scenario==='queued' ? [['Yêu cầu được tiếp nhận','Phiên đang chờ xử lý']] : complete ? [
+        ['Hoàn thành phiên phân tích','10:34:28 · Kết quả và báo cáo đã được lưu'],
+        ['Đánh giá rủi ro hoàn tất','10:34:02 · Có thêm 1 báo cáo'],
+        ['Tổng hợp các luận điểm','10:33:45 · Giai đoạn tổng hợp hoàn tất'],
+        ['Phân tích dữ liệu','10:32:18 · Báo cáo được tập hợp'],
+        ['Yêu cầu được tiếp nhận','10:32:00 · Phiên bắt đầu']
+      ] : [
+        [state.scenario==='failed'?'Phiên bị gián đoạn':state.scenario==='cancelled'?'Phiên đã hủy':state.scenario==='cancel_requested'?'Đã nhận yêu cầu hủy':'Đang phân tích dữ liệu','14:00:38 · Cập nhật gần nhất'],
+        ['Báo cáo tin tức đã sẵn sàng','14:00:32 · Có thể mở đọc ngay'],
+        ['Báo cáo kỹ thuật đã sẵn sàng','14:00:19 · Có thể mở đọc ngay'],
+        ['Chuẩn bị hoàn tất','14:00:04 · Ngữ cảnh phân tích đã được xác định'],
+        ['Yêu cầu được tiếp nhận','14:00:00 · Phiên bắt đầu']
+      ];
+      return `<section class="card section-card"><div class="row between" style="margin-bottom:20px"><h2 style="font-size:15px;margin:0">Hoạt động gần đây</h2>${icon('activity')}</div><ol class="timeline">${events.map(([title,note],index)=>`<li><span class="timeline-point ${!index&&!complete&&!['failed','cancelled'].includes(state.scenario)?'current':''}"></span><div><strong>${title}</strong><p>${note}</p></div></li>`).join('')}</ol></section>`;
+    }
+    function infoCard(run, complete=false) {
+      return `<section class="card section-card"><h2 style="font-size:15px">Thông tin phiên</h2><dl class="summary-list" style="margin:10px 0 0"><div><dt>Ngày dữ liệu</dt><dd>${run.date}</dd></div><div><dt>Cấu hình</dt><dd>Tiêu chuẩn</dd></div><div><dt>Ngôn ngữ</dt><dd>Tiếng Việt</dd></div><div><dt>Thời gian chạy</dt><dd>${complete?'2 phút 28 giây':'Đang cập nhật'}</dd></div><div><dt>Nguồn dữ liệu</dt><dd>Giả lập</dd></div></dl></section>`;
+    }
+
+    function runningScreen() {
+      const run=selectedRun();
+      const status = ['queued','cancel_requested','cancelled','failed'].includes(state.scenario) ? state.scenario : 'running';
+      const copy = {
+        running:['blue','activity','Phân tích đang diễn ra','Các báo cáo đang được tập hợp. Bạn có thể đọc từng phần đã hoàn thành trong khi chờ kết luận.'],
+        queued:['gray','clock','Yêu cầu đã được tiếp nhận','Phiên đang chờ được xử lý. Bạn có thể rời trang và kiểm tra lại từ lịch sử.'],
+        cancel_requested:['amber','clock','Đang dừng phiên phân tích','Yêu cầu hủy đã được ghi nhận. Các báo cáo hoàn thành trước đó vẫn được giữ lại.'],
+        cancelled:['gray','stop','Phiên phân tích đã được hủy','Chưa có kết luận cuối cùng. Bạn vẫn có thể đọc các báo cáo đã hoàn thành hoặc tạo lần thử mới.'],
+        failed:['red','alert','Phiên phân tích bị gián đoạn','Không thể hoàn tất do mất kết nối tới nguồn xử lý. Các báo cáo đã có vẫn được giữ lại.']
+      }[status];
+      const [tone,glyph,title,description]=copy;
+      const isQueued=status==='queued';
+      const summary=`<section class="card run-summary"><div class="status-orb ${tone}">${icon(glyph)}</div><h2>${title}</h2><p>${description}</p>
+        ${!isQueued?`<div class="stepper"><div class="done"><div class="line"></div><span>01 · Chuẩn bị</span></div><div class="${['failed','cancelled'].includes(status)?'stopped':'current'}"><div class="line"></div><span>02 · Phân tích</span></div><div><div class="line"></div><span>03 · Tổng hợp</span></div><div><div class="line"></div><span>04 · Hoàn tất</span></div></div>`:''}
+        <div class="run-metrics"><div><span>${isQueued?'Tạo lúc':'Bắt đầu lúc'}</span><strong>${run.time}</strong></div><div><span>${['cancelled','failed'].includes(status)?'Thời gian đã chạy':'Thời gian đã qua'}</span><strong>${isQueued?'Chưa bắt đầu':'00:38'}</strong></div><div><span>Báo cáo đã có</span><strong>${isQueued?'0':'2'}</strong></div></div>
+        ${status==='failed'?'<p class="help" style="margin:16px 0 0">Mã hỗ trợ: ENGINE_UNAVAILABLE · #PA-'+run.id+'</p>':''}
+      </section>`;
+      let body;
+      if(state.tab==='reports') body=isQueued?'<section class="card empty-state"><div class="status-orb">'+icon('file')+'</div><h2>Chưa có báo cáo</h2><p>Các phần hoàn thành sẽ xuất hiện khi phiên bắt đầu xử lý.</p></section>':reportList(false);
+      else if(state.tab==='timeline') body=timelineCard(false);
+      else body=`<div class="detail-grid"><div class="stack">${summary}${isQueued?'':reportList(false)}</div><aside class="stack">${isQueued?infoCard(run):timelineCard(false)}<div class="soft-note">${icon('info')}${['failed','cancelled'].includes(status)?'Các báo cáo đã có vẫn được giữ trong lịch sử.':'Bạn có thể đóng trang. Phiên vẫn được xử lý.'}</div></aside></div>`;
+      return shell(`${detailHeader(run,status)}${tabs(state.tab)}${state.scenario==='offline'?`<div class="alert info">${icon('info')}<div><strong>Đang mất kết nối</strong><p>Đang hiển thị cập nhật gần nhất. <button class="table-link" data-action="restore">Kết nối lại</button></p></div></div>`:''}${body}`, 'Chi tiết phiên');
+    }
+
+    function resultScreen() {
+      const run=selectedRun();
+      const review=state.scenario==='review';
+      const decision=`<section class="card decision-card ${review?'review':''}"><div class="row between"><span class="eyebrow muted">KẾT LUẬN PHÂN TÍCH</span><span class="badge ${review?'amber':'green'}">${icon(review?'alert':'check')}${review?'Cần xem xét':'Đã có kết luận'}</span></div>
+        <h2 class="decision-title">${review?'Chưa đủ cơ sở kết luận':'Tăng tỷ trọng'}</h2><p>${review?'Dữ liệu giữa các nguồn chưa nhất quán. Cần kiểm tra phần còn thiếu trước khi đưa ra một nhận định hoàn chỉnh.':'Các luận điểm tích cực chiếm ưu thế trong tập dữ liệu minh họa. Cần cân nhắc cùng các rủi ro được nêu trong báo cáo.'}</p>
+        ${review?`<div class="alert" style="margin-top:20px;margin-bottom:0">${icon('alert')}<div><strong>Chất lượng kết luận cần được kiểm tra</strong><p>Khuyến nghị chưa được gán. Xem báo cáo rủi ro để đọc giới hạn của dữ liệu.</p></div></div>`:`<ul class="evidence-list"><li>${icon('chart')}<div><strong>Tín hiệu kỹ thuật thuận chiều</strong><span>Báo cáo mẫu ghi nhận xu hướng và thanh khoản hỗ trợ.</span></div></li><li>${icon('file')}<div><strong>Bối cảnh tin tức tích cực</strong><span>Các luận điểm được đặt trong ngữ cảnh của ngày dữ liệu.</span></div></li><li>${icon('alert')}<div><strong>Rủi ro cần theo dõi</strong><span>Giới hạn dữ liệu và biến động thị trường vẫn có thể làm thay đổi nhận định.</span></div></li></ul>`}
+        <button class="btn text" data-report="${review?'risk':'research'}" style="margin-top:15px">${review?'Đọc giới hạn dữ liệu':'Đọc các luận điểm nghiên cứu'} ${icon('arrow')}</button>
+      </section>`;
+      let body;
+      if(state.tab==='reports') body=reportList(true);
+      else if(state.tab==='timeline') body=timelineCard(true);
+      else body=`<div class="detail-grid"><div class="stack">${decision}${reportList(true)}</div><aside class="stack">${infoCard(run,true)}<section class="card section-card"><div class="status-orb ${review?'amber':'green'}" style="margin-bottom:13px">${icon(review?'alert':'check')}</div><h3>${review?'Đã hoàn tất xử lý':'Báo cáo đã được lưu'}</h3><p class="small muted" style="margin-bottom:0">${review?'Phiên đã chạy xong. Chất lượng kết luận được đánh dấu riêng để bạn kiểm tra.':'Bạn có thể mở lại phiên này bất kỳ lúc nào từ lịch sử phân tích.'}</p></section></aside></div>`;
+      return shell(`${detailHeader(run,'succeeded')}${tabs(state.tab)}${body}<div class="soft-note">${icon('info')}Nội dung minh họa bố cục. Mọi nhận định trong bản phác thảo đều là dữ liệu giả lập.</div>`, 'Kết quả phân tích');
+    }
+
+    function reportScreen() {
+      const run=selectedRun();
+      const availableSections=run.status==='succeeded'?reportSections:reportSections.slice(0,2);
+      const section=availableSections.find(([key])=>key===state.report)||availableSections[0];
+      state.report=section[0];
+      const [,title,glyph]=section;
+      const content={
+        market:`<h3>1. Tổng quan xu hướng</h3><p>Tập dữ liệu giả lập mô tả một giai đoạn vận động tích cực, với nhịp điều chỉnh ngắn trước khi xu hướng tiếp tục. Đây là đoạn văn tham khảo để đánh giá độ dễ đọc và cấu trúc trình bày của báo cáo.</p><div class="quote-block">Điểm cần theo dõi: mức độ đồng thuận giữa xu hướng giá, thanh khoản và bối cảnh tin tức tại ngày phân tích.</div><h3>2. Các tín hiệu chính</h3><table><thead><tr><th>Góc nhìn</th><th>Nhận định mẫu</th><th>Ý nghĩa</th></tr></thead><tbody><tr><td>Xu hướng</td><td>Tích cực</td><td>Hỗ trợ luận điểm nghiên cứu</td></tr><tr><td>Thanh khoản</td><td>Cần theo dõi</td><td>Cần thêm xác nhận</td></tr><tr><td>Biến động</td><td>Trung tính</td><td>Giữ thận trọng với dữ liệu ngắn hạn</td></tr></tbody></table><h3>3. Giới hạn phân tích</h3><p>Các tín hiệu nêu trên chỉ là nội dung minh họa. Bản triển khai thật cần hiển thị đúng dữ liệu mà engine cung cấp; những trường chưa có sẽ không xuất hiện.</p>`,
+        news:`<h3>1. Bối cảnh sự kiện</h3><p>Báo cáo mẫu tổng hợp các nhóm thông tin liên quan đến doanh nghiệp và bối cảnh thị trường tại ngày đã chọn. Các phần được chia thành đoạn ngắn để người dùng dễ rà soát.</p><h3>2. Luận điểm đáng chú ý</h3><ul><li>Sự kiện hỗ trợ triển vọng hoạt động được trình bày cùng ngữ cảnh.</li><li>Các thông tin bất lợi cần được đưa vào đánh giá rủi ro.</li><li>Thông tin chưa xác nhận được đánh dấu trước khi dùng để kết luận.</li></ul><div class="quote-block">Nội dung mẫu không gắn với một bài báo hay doanh nghiệp thật.</div><h3>3. Thông tin còn thiếu</h3><p>Các trường nguồn tham chiếu chỉ hiển thị khi engine thực sự cung cấp dữ liệu tương ứng.</p>`,
+        research:`<h3>1. Luận điểm hỗ trợ</h3><p>Báo cáo mẫu tập hợp những yếu tố tích cực từ các phần phân tích. Người dùng có thể lần theo từng báo cáo để hiểu các bằng chứng được sử dụng.</p><h3>2. Luận điểm phản biện</h3><p>Độ đầy đủ của dữ liệu và sự thay đổi của bối cảnh là những giới hạn cần được cân nhắc. Các quan điểm trái chiều được giữ lại trong nội dung để người đọc đánh giá.</p><div class="quote-block">Kết luận mẫu: ưu tiên góc nhìn tích cực với mức độ thận trọng phù hợp, đồng thời theo dõi các rủi ro chưa được giải quyết.</div><h3>3. Điều kiện thay đổi nhận định</h3><ul><li>Dữ liệu mới làm suy yếu các luận điểm đang có.</li><li>Các yếu tố rủi ro trở nên rõ ràng hơn.</li><li>Ngữ cảnh phân tích khác với thời điểm của báo cáo.</li></ul>`,
+        risk:`<h3>1. Rủi ro về dữ liệu</h3><p>Dữ liệu minh họa chưa đại diện cho các nguồn cung cấp thật. Mức độ đầy đủ, thời điểm công bố và sự nhất quán cần được kiểm tra khi kết nối backend với engine.</p><h3>2. Điểm cần xem xét</h3><ul><li>Đối chiếu ngày dữ liệu với ngày công bố của thông tin.</li><li>Đọc các kết luận khác nhau trong ngữ cảnh tương ứng.</li><li>Kiểm tra các phần chưa có bằng chứng hỗ trợ.</li></ul><div class="quote-block">Khi chưa có đủ cơ sở, giao diện hiển thị “Cần xem xét” và không gán khuyến nghị.</div><h3>3. Phạm vi nhận định</h3><p>Báo cáo này minh họa cách hiển thị nội dung, không đưa ra kết luận cho một tài sản thật.</p>`
+      }[state.report];
+      return shell(`<a class="back-link" href="#${state.reportReturn}">${icon('back')}Quay lại phiên phân tích</a><div class="page-heading" style="margin-bottom:25px"><div><div class="page-kicker">BÁO CÁO CHUYÊN MÔN</div><h1>${run.symbol} / Báo cáo</h1><p>Ngày dữ liệu ${run.date} · Phiên #PA-${run.id}</p></div><span class="badge green">${icon('check')}Đã hoàn thành</span></div>
+        <div class="report-layout"><nav class="card report-nav" aria-label="Các phần báo cáo"><h3>NỘI DUNG BÁO CÁO</h3>${availableSections.map(([key,name,g])=>`<button data-report="${key}" class="${key===state.report?'active':''}" ${key===state.report?'aria-current="page"':''}>${icon(g)}${name}</button>`).join('')}</nav>
+        <article class="card report-article"><div class="row between" style="margin-bottom:18px"><span class="eyebrow muted">${icon(glyph)} BÁO CÁO PHÂN TÍCH</span>${mockBadge}</div><h2>${title}</h2><div class="report-meta">${run.symbol} · Ngày dữ liệu ${run.date} · Tiếng Việt</div>${content}<div class="soft-note" style="border-top:1px solid var(--line);padding-top:17px;margin-top:25px">${icon('info')}Toàn bộ nội dung trên là dữ liệu giả lập phục vụ thiết kế.</div></article></div>`, 'Đọc báo cáo');
+    }
+
+    function render() {
+      document.getElementById('screen-picker').value=state.screen;
+      document.getElementById('scenario-picker').innerHTML=scenarios[state.screen].map(([value,label])=>`<option value="${value}" ${value===state.scenario?'selected':''}>${label}</option>`).join('');
+      const views={login:loginScreen,history:historyScreen,create:createScreen,running:runningScreen,result:resultScreen,report:reportScreen};
+      document.getElementById('app').innerHTML=views[state.screen]();
+      if(state.screen==='history' && state.filters) {
+        document.getElementById('status-filter').value=state.filters.status;
+        document.getElementById('from-date').value=state.filters.from;
+        document.getElementById('to-date').value=state.filters.to;
+        applyFilters();
+      }
+    }
+    function navigate(screen,scenario='default') {
+      state.screen=screen; state.scenario=scenario; state.tab='overview';
+      if(screen==='running') state.runId='104';
+      if(screen==='result'||screen==='report') state.runId='103';
+      const hash='#'+screen+(scenario!=='default'?'?state='+encodeURIComponent(scenario):'');
+      if(location.hash===hash) render(); else location.hash=hash;
+      window.scrollTo({top:0,behavior:'instant'});
+    }
+    function readLocation() {
+      const [route,query='']=location.hash.slice(1).split('?');
+      state.screen=screens.includes(route)?route:'history';
+      const scenario=new URLSearchParams(query).get('state')||'default';
+      state.scenario=scenarios[state.screen].some(([value])=>value===scenario)?scenario:'default';
+      render();
+    }
+    function notify(message) {
+      const toast=document.getElementById('toast');
+      toast.textContent=message; toast.hidden=false;
+      clearTimeout(notify.timer); notify.timer=setTimeout(()=>{toast.hidden=true;},3800);
+    }
+    function enqueueDemoRun(source) {
+      const id=String(Math.max(...rows.map(run=>Number(run.id)))+1);
+      rows.unshift({...source,id,status:'queued',rating:null,created:'04/11 · 14:05',time:'14:05:00'});
+      navigate('running','queued');
+      state.runId=id;
+      render();
+    }
+    function applyFilters() {
+      if(state.screen!=='history')return;
+      const query=document.getElementById('history-search').value.trim().toLocaleLowerCase('vi');
+      const status=document.getElementById('status-filter').value;
+      const from=document.getElementById('from-date').value;
+      const to=document.getElementById('to-date').value;
+      state.filters={query,status,from,to};
+      const list=(state.scenario==='empty'?[]:rows).filter(r=>{
+        const createdDate=r.created.startsWith('04')?'2026-11-04':r.created.startsWith('03')?'2026-11-03':'2026-11-02';
+        return `${r.symbol} ${r.name}`.toLocaleLowerCase('vi').includes(query)&&(status==='all'||r.status===status)&&(!from||createdDate>=from)&&(!to||createdDate<=to);
+      });
+      document.getElementById('history-rows').innerHTML=historyRows(list);
+      document.getElementById('no-filter-results').hidden=!!list.length||state.scenario==='empty';
+      const count=document.getElementById('row-count');
+      if(count)count.textContent=`Hiển thị ${list.length} phiên`;
+    }
+    document.getElementById('screen-picker').addEventListener('change',event=>navigate(event.target.value));
+    document.getElementById('scenario-picker').addEventListener('change',event=>navigate(state.screen,event.target.value));
+    window.addEventListener('hashchange',readLocation);
+    document.addEventListener('click',event=>{
+      const screen=event.target.closest('[data-screen]');
+      if(screen){navigate(screen.dataset.screen);return;}
+      const report=event.target.closest('[data-report]');
+      if(report){if(state.screen!=='report')state.reportReturn=state.screen+(state.scenario!=='default'?'?state='+state.scenario:'');state.report=report.dataset.report;state.screen='report';state.scenario='default';if(location.hash==='#report')render();else location.hash='#report';window.scrollTo(0,0);return;}
+      const run=event.target.closest('[data-run]');
+      if(run){const selected=rows.find(r=>r.id===run.dataset.run);state.tab='overview';state.runId=selected.id;state.screen=selected.status==='succeeded'?'result':'running';state.scenario=selected.rating==='review'?'review':['queued','failed','cancelled'].includes(selected.status)?selected.status:'default';const hash='#'+state.screen+(state.scenario!=='default'?'?state='+state.scenario:'');if(location.hash===hash)render();else location.hash=hash;window.scrollTo(0,0);return;}
+      const tab=event.target.closest('[data-tab]');
+      if(tab){state.tab=tab.dataset.tab;render();return;}
+      const action=event.target.closest('[data-action]')?.dataset.action;
+      if(action==='toggle-password'){const input=document.getElementById('password');input.type=input.type==='password'?'text':'password';event.target.closest('button').setAttribute('aria-label',input.type==='password'?'Hiện mật khẩu':'Ẩn mật khẩu');}
+      if(action==='cancel')document.getElementById('cancel-dialog').showModal();
+      if(action==='close-dialog')document.getElementById('cancel-dialog').close();
+      if(action==='confirm-cancel'){document.getElementById('cancel-dialog').close();navigate('running',state.scenario==='queued'?'cancelled':'cancel_requested');notify('Đã ghi nhận yêu cầu hủy trong bản minh họa.');}
+      if(action==='retry'){enqueueDemoRun(selectedRun());notify('Đã tạo lần thử mới trong bản minh họa.');}
+      if(action==='restore')navigate(state.screen);
+      if(action==='clear-filters'){state.filters=null;render();}
+    });
+    document.addEventListener('submit',event=>{
+      event.preventDefault();
+      if(event.target.id==='login-form'){event.target.reset();navigate('history');notify('Bạn đang xem không gian minh họa. Không có thông tin được gửi đi.');}
+      if(event.target.id==='filter-form')applyFilters();
+      if(event.target.id==='create-form'){
+        const date=document.getElementById('analysis-date').value;
+        const instrument=document.getElementById('instrument-search').value.trim().toUpperCase();
+        if(instrument!=='DEMO'){document.getElementById('instrument-hint').className='field-error';document.getElementById('instrument-hint').textContent='Bản minh họa hỗ trợ đối tượng DEMO. Vui lòng chọn lại.';document.getElementById('instrument-search').focus();return;}
+        if(!date||date<'2026-01-01'||date>'2026-11-04'){document.getElementById('analysis-date').classList.add('invalid');document.getElementById('date-hint').className='field-error';document.getElementById('date-hint').textContent='Chọn ngày từ 01/01 đến 04/11/2026.';document.getElementById('analysis-date').focus();return;}
+        const [year,month,day]=date.split('-');
+        enqueueDemoRun({...rows.find(run=>run.symbol==='DEMO'),iso:date,date:`${day}/${month}/${year}`});notify('Yêu cầu mẫu đã được tiếp nhận. Chọn trạng thái để xem bước tiếp theo.');
+      }
+    });
+    document.addEventListener('input',event=>{
+      if(event.target.id==='history-search')applyFilters();
+      if(event.target.id==='analysis-date'){
+        const [y,m,d]=event.target.value.split('-');
+        document.getElementById('summary-date').textContent=y?`${d}/${m}/${y}`:'Chưa chọn';
+      }
+      if(event.target.id==='language')document.getElementById('summary-language').textContent=event.target.value==='vi'?'Tiếng Việt':'English';
+    });
+    readLocation();
+  </script>
+</body>
+</html>

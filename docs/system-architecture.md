@@ -1,5 +1,7 @@
 # Kiến trúc hệ thống
 
+Các yêu cầu, phạm vi và tiêu chí nghiệm thu được quản lý tập trung tại [requirements.md](requirements.md). Tài liệu này mô tả phương án kiến trúc đáp ứng các yêu cầu đó.
+
 ## 1. Bài toán và phạm vi
 
 Người dùng cần gửi một yêu cầu phân tích, biết yêu cầu đang ở bước nào, đọc kết quả và tra cứu lại về sau. Một phiên có thể chạy lâu, lỗi do nguồn ngoài hoặc bị gián đoạn khi người dùng đóng trình duyệt. Vì vậy, vòng đời phiên thuộc backend và tồn tại độc lập với trang web đang mở.

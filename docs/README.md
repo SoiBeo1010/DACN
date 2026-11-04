@@ -12,8 +12,10 @@ Frontend và backend được phát triển với engine giả lập trước. M
 
 | Tài liệu | Nội dung | Người sử dụng chính |
 |---|---|---|
+| [Đặc tả yêu cầu](requirements.md) | Yêu cầu FR/NFR, quy tắc nghiệp vụ, ưu tiên, trạng thái và tiêu chí nghiệm thu | Cả nhóm |
 | [Kiến trúc hệ thống](system-architecture.md) | Phạm vi, quyết định công nghệ, thành phần, luồng dữ liệu | Cả nhóm |
 | [Thiết kế frontend](frontend.md) | Màn hình, điều hướng, component, quản lý trạng thái, UX | Frontend |
+| [Planning giao diện frontend](planning/frontend-ui.md) | Sáu màn hình tham khảo, ảnh desktop/mobile và prototype HTML | Cả nhóm |
 | [Thiết kế backend](backend.md) | Module, worker, vòng đời phiên, tích hợp engine, xử lý lỗi | Backend |
 | [Hợp đồng API](api-contract.md) | Endpoint, request/response, lỗi, phân trang, idempotency | Frontend và backend |
 | [Mô hình dữ liệu](data-model.md) | ERD, bảng, ràng buộc và transaction | Backend |

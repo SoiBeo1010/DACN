@@ -10,6 +10,8 @@ Thanh **UI Planning** ở đầu trang dùng để chọn màn hình và trạng
 
 Phạm vi: sáu màn hình chính, phiên bản mobile của màn hình theo dõi và các trạng thái phụ. Dữ liệu, mã đối tượng, tài khoản và nhận định đều là giả lập; ngày minh họa cố định ở 04/11/2026. Prototype không gửi request, xác thực thật hoặc lưu mật khẩu. Tương tác trong phiên xem không tồn tại sau khi tải lại trang.
 
+Prototype dùng ID ngắn và fixture trình bày riêng, không phải mock API tuân thủ OpenAPI. UUID/schema, session, idempotency, quota, polling và lease được kiểm chứng ở ứng dụng thực hiện theo contract; không suy ra chúng đã đạt từ việc bấm thử HTML. Thanh chọn màn hình/trạng thái chỉ đổi kịch bản xem, không khởi chạy engine.
+
 ## 2. Hướng hình ảnh
 
 Phong cách đề xuất là một không gian nghiên cứu gọn, dễ đọc: nền sáng, sidebar xanh đậm, nội dung trên card trắng, màu xanh lục làm điểm nhấn cho hành động chính. Trạng thái xử lý và chất lượng kết luận có nhãn riêng.
@@ -85,7 +87,7 @@ Trong MVP, có thể giữ hoặc lược bỏ các thẻ tổng hợp. Nếu gi
 
 Trạng thái “Hoàn thành” nằm ở cột xử lý; “Cần xem xét” nằm ở cột kết luận. Một phiên có thể mang cả hai nhãn mà không mâu thuẫn.
 
-Trong prototype, tìm mã và bộ lọc trạng thái/ngày có thể dùng trực tiếp. Chọn “Chưa có phiên” hoặc “Mất kết nối” trên thanh Planning để xem trạng thái phụ.
+Trong prototype, tìm mã và bộ lọc trạng thái/ngày có thể dùng trực tiếp. Ứng dụng thật gửi q và các filter cùng request lịch sử, tính ngày theo timezone hiển thị. Chọn “Chưa có phiên” hoặc “Mất kết nối” trên thanh Planning để xem trạng thái phụ.
 
 ## 6. Màn hình 03 — Tạo phiên phân tích
 

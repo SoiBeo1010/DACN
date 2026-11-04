@@ -481,7 +481,7 @@
       const list = empty ? [] : rows;
       const stats = [
         ['Phiên trong danh sách',String(list.length),'grid','Dữ liệu đang hiển thị'],
-        ['Đang hoạt động',String(list.filter(r=>['queued','running'].includes(r.status)).length),'activity','Đang chờ và đang chạy'],
+        ['Đang hoạt động',String(list.filter(r=>['queued','running','cancel_requested'].includes(r.status)).length),'activity','Các phiên chưa kết thúc'],
         ['Đã hoàn thành',String(list.filter(r=>r.status==='succeeded').length),'check','Có kết quả để xem'],
         ['Cần xem xét',String(list.filter(r=>r.rating==='review').length),'alert','Cần đọc thêm ngữ cảnh']
       ];
@@ -490,7 +490,7 @@
         <div class="stats-grid">${stats.map(([label,count,glyph,note])=>`<div class="card stat">${icon(glyph)}<div class="stat-label">${label}</div><strong>${count}</strong><div class="small">${note}</div></div>`).join('')}</div>
         <section class="card" aria-label="Danh sách phiên phân tích"><form id="filter-form" class="table-toolbar">
           <div class="search"><label class="field-label" for="history-search">Tìm đối tượng</label><div class="input-wrap">${icon('search')}<input id="history-search" placeholder="Tìm theo mã hoặc tên..." value="${escapeHtml(state.filters?.query || '')}"></div></div>
-          <div class="filter status-filter"><label class="field-label" for="status-filter">Trạng thái</label><select id="status-filter"><option value="all">Tất cả trạng thái</option><option value="running">Đang chạy</option><option value="queued">Đang chờ</option><option value="succeeded">Hoàn thành</option><option value="failed">Thất bại</option><option value="cancelled">Đã hủy</option></select></div>
+          <div class="filter status-filter"><label class="field-label" for="status-filter">Trạng thái</label><select id="status-filter"><option value="all">Tất cả trạng thái</option><option value="running">Đang chạy</option><option value="queued">Đang chờ</option><option value="cancel_requested">Đang yêu cầu hủy</option><option value="succeeded">Hoàn thành</option><option value="failed">Thất bại</option><option value="cancelled">Đã hủy</option></select></div>
           <div class="filter"><label class="field-label" for="from-date">Ngày tạo từ</label><input type="date" id="from-date" aria-label="Ngày tạo từ"></div>
           <div class="filter"><label class="field-label" for="to-date">Đến ngày</label><input type="date" id="to-date" aria-label="Ngày tạo đến"></div>
           <button class="btn" type="submit">Áp dụng</button>
@@ -533,18 +533,21 @@
       const run=rows.find(r=>r.id===state.runId);
       return run || fallback;
     }
+    const reportCount = (run=selectedRun()) => state.screen==='running'&&state.scenario==='queued' ? 0 : (run.reportCount ?? (run.status==='queued'?0:run.status==='succeeded'?4:2));
+    const languageLabel = (run=selectedRun()) => run.language==='en'?'English':'Tiếng Việt';
     function detailHeader(run, status) {
       return `<a class="back-link" href="#history">${icon('back')}Quay lại danh sách</a><div class="page-heading" style="margin-bottom:0"><div><div class="detail-heading"><div class="symbol-box">D</div><div><h1>${run.symbol} <span class="muted" style="font-size:16px;font-weight:400">/ Phân tích</span></h1><p>${run.name} · Sàn DEMO</p></div></div><div class="meta-strip"><span>Ngày dữ liệu <strong style="color:#415963">${run.date}</strong></span><span>Cấu hình Tiêu chuẩn</span><span class="mono">#PA-${run.id}</span></div></div><div class="row wrap">${statusBadge(status)}${['queued','running'].includes(status)?`<button class="btn danger" data-action="cancel">${icon('stop')}Yêu cầu hủy</button>`:['failed','cancelled'].includes(status)?`<button class="btn primary" data-action="retry">${icon('refresh')}Thử lại</button>`:''}</div></div>`;
     }
     function tabs(active) {
-      return `<div class="tabs" role="tablist" aria-label="Nội dung phiên"><button role="tab" aria-selected="${active==='overview'}" class="tab ${active==='overview'?'active':''}" data-tab="overview">Tổng quan</button><button role="tab" aria-selected="${active==='reports'}" class="tab ${active==='reports'?'active':''}" data-tab="reports">Báo cáo <span>${state.screen==='running'?(state.scenario==='queued'?'0':'2'):'4'}</span></button><button role="tab" aria-selected="${active==='timeline'}" class="tab ${active==='timeline'?'active':''}" data-tab="timeline">Tiến trình</button></div>`;
+      return `<div class="tabs" role="tablist" aria-label="Nội dung phiên"><button role="tab" aria-selected="${active==='overview'}" class="tab ${active==='overview'?'active':''}" data-tab="overview">Tổng quan</button><button role="tab" aria-selected="${active==='reports'}" class="tab ${active==='reports'?'active':''}" data-tab="reports">Báo cáo <span>${reportCount()}</span></button><button role="tab" aria-selected="${active==='timeline'}" class="tab ${active==='timeline'?'active':''}" data-tab="timeline">Tiến trình</button></div>`;
     }
     function reportList(complete=false) {
-      const list = complete ? reportSections : reportSections.slice(0,2);
+      const list = complete ? reportSections : reportSections.slice(0,reportCount());
+      if(!list.length)return '<section class="card empty-state"><div class="status-orb">'+icon('file')+'</div><h2>Chưa có báo cáo</h2><p>Phiên này chưa có phần báo cáo hoàn thành.</p></section>';
       return `<section class="card section-card"><div class="row between"><h2 style="font-size:15px;margin:0">Báo cáo đã sẵn sàng</h2><span class="small muted">${list.length} phần</span></div>${list.map(([key,title,glyph])=>`<div class="report-link"><div class="row">${icon(glyph)}<div><strong>${title}</strong><small>Đã hoàn thành · Dữ liệu giả lập</small></div></div><button class="table-link" data-report="${key}" aria-label="Đọc ${title}">Đọc ${icon('arrow')}</button></div>`).join('')}</section>`;
     }
     function timelineCard(complete=false) {
-      const events = state.screen==='running'&&state.scenario==='queued' ? [['Yêu cầu được tiếp nhận','Phiên đang chờ xử lý']] : complete ? [
+      const events = state.screen==='running'&&reportCount()===0 ? (state.scenario==='cancelled' ? [['Phiên đã hủy','Yêu cầu đã dừng trước khi bắt đầu'],['Yêu cầu được tiếp nhận','Chưa có báo cáo hoàn thành']] : [['Yêu cầu được tiếp nhận','Phiên đang chờ xử lý']]) : complete ? [
         ['Hoàn thành phiên phân tích','10:34:28 · Kết quả và báo cáo đã được lưu'],
         ['Đánh giá rủi ro hoàn tất','10:34:02 · Có thêm 1 báo cáo'],
         ['Tổng hợp các luận điểm','10:33:45 · Giai đoạn tổng hợp hoàn tất'],
@@ -560,7 +563,7 @@
       return `<section class="card section-card"><div class="row between" style="margin-bottom:20px"><h2 style="font-size:15px;margin:0">Hoạt động gần đây</h2>${icon('activity')}</div><ol class="timeline">${events.map(([title,note],index)=>`<li><span class="timeline-point ${!index&&!complete&&!['failed','cancelled'].includes(state.scenario)?'current':''}"></span><div><strong>${title}</strong><p>${note}</p></div></li>`).join('')}</ol></section>`;
     }
     function infoCard(run, complete=false) {
-      return `<section class="card section-card"><h2 style="font-size:15px">Thông tin phiên</h2><dl class="summary-list" style="margin:10px 0 0"><div><dt>Ngày dữ liệu</dt><dd>${run.date}</dd></div><div><dt>Cấu hình</dt><dd>Tiêu chuẩn</dd></div><div><dt>Ngôn ngữ</dt><dd>Tiếng Việt</dd></div><div><dt>Thời gian chạy</dt><dd>${complete?'2 phút 28 giây':'Đang cập nhật'}</dd></div><div><dt>Nguồn dữ liệu</dt><dd>Giả lập</dd></div></dl></section>`;
+      return `<section class="card section-card"><h2 style="font-size:15px">Thông tin phiên</h2><dl class="summary-list" style="margin:10px 0 0"><div><dt>Ngày dữ liệu</dt><dd>${run.date}</dd></div><div><dt>Cấu hình</dt><dd>Tiêu chuẩn</dd></div><div><dt>Ngôn ngữ</dt><dd>${languageLabel(run)}</dd></div><div><dt>Thời gian chạy</dt><dd>${complete?'2 phút 28 giây':'Đang cập nhật'}</dd></div><div><dt>Nguồn dữ liệu</dt><dd>Giả lập</dd></div></dl></section>`;
     }
 
     function runningScreen() {
@@ -575,9 +578,10 @@
       }[status];
       const [tone,glyph,title,description]=copy;
       const isQueued=status==='queued';
+      const hasStarted=!isQueued&&!(status==='cancelled'&&reportCount(run)===0);
       const summary=`<section class="card run-summary"><div class="status-orb ${tone}">${icon(glyph)}</div><h2>${title}</h2><p>${description}</p>
-        ${!isQueued?`<div class="stepper"><div class="done"><div class="line"></div><span>01 · Chuẩn bị</span></div><div class="${['failed','cancelled'].includes(status)?'stopped':'current'}"><div class="line"></div><span>02 · Phân tích</span></div><div><div class="line"></div><span>03 · Tổng hợp</span></div><div><div class="line"></div><span>04 · Hoàn tất</span></div></div>`:''}
-        <div class="run-metrics"><div><span>${isQueued?'Tạo lúc':'Bắt đầu lúc'}</span><strong>${run.time}</strong></div><div><span>${['cancelled','failed'].includes(status)?'Thời gian đã chạy':'Thời gian đã qua'}</span><strong>${isQueued?'Chưa bắt đầu':'00:38'}</strong></div><div><span>Báo cáo đã có</span><strong>${isQueued?'0':'2'}</strong></div></div>
+        ${hasStarted?`<div class="stepper"><div class="done"><div class="line"></div><span>01 · Chuẩn bị</span></div><div class="${['failed','cancelled'].includes(status)?'stopped':'current'}"><div class="line"></div><span>02 · Phân tích</span></div><div><div class="line"></div><span>03 · Tổng hợp</span></div><div><div class="line"></div><span>04 · Hoàn tất</span></div></div>`:''}
+        <div class="run-metrics"><div><span>${hasStarted?'Bắt đầu lúc':'Tạo lúc'}</span><strong>${run.time}</strong></div><div><span>${['cancelled','failed'].includes(status)?'Thời gian đã chạy':'Thời gian đã qua'}</span><strong>${hasStarted?'00:38':'Chưa bắt đầu'}</strong></div><div><span>Báo cáo đã có</span><strong>${reportCount(run)}</strong></div></div>
         ${status==='failed'?'<p class="help" style="margin:16px 0 0">Mã hỗ trợ: ENGINE_UNAVAILABLE · #PA-'+run.id+'</p>':''}
       </section>`;
       let body;
@@ -631,10 +635,11 @@
         applyFilters();
       }
     }
-    function navigate(screen,scenario='default') {
+    function navigate(screen,scenario='default',runId=null) {
       state.screen=screen; state.scenario=scenario; state.tab='overview';
-      if(screen==='running') state.runId='104';
-      if(screen==='result'||screen==='report') state.runId='103';
+      if(runId)state.runId=runId;
+      else if(screen==='running') state.runId='104';
+      else if(screen==='result'||screen==='report') state.runId='103';
       const hash='#'+screen+(scenario!=='default'?'?state='+encodeURIComponent(scenario):'');
       if(location.hash===hash) render(); else location.hash=hash;
       window.scrollTo({top:0,behavior:'instant'});
@@ -653,7 +658,7 @@
     }
     function enqueueDemoRun(source) {
       const id=String(Math.max(...rows.map(run=>Number(run.id)))+1);
-      rows.unshift({...source,id,status:'queued',rating:null,created:'04/11 · 14:05',time:'14:05:00'});
+      rows.unshift({...source,id,status:'queued',rating:null,reportCount:0,created:'04/11 · 14:05',time:'14:05:00'});
       navigate('running','queued');
       state.runId=id;
       render();
@@ -683,16 +688,16 @@
       const report=event.target.closest('[data-report]');
       if(report){if(state.screen!=='report')state.reportReturn=state.screen+(state.scenario!=='default'?'?state='+state.scenario:'');state.report=report.dataset.report;state.screen='report';state.scenario='default';if(location.hash==='#report')render();else location.hash='#report';window.scrollTo(0,0);return;}
       const run=event.target.closest('[data-run]');
-      if(run){const selected=rows.find(r=>r.id===run.dataset.run);state.tab='overview';state.runId=selected.id;state.screen=selected.status==='succeeded'?'result':'running';state.scenario=selected.rating==='review'?'review':['queued','failed','cancelled'].includes(selected.status)?selected.status:'default';const hash='#'+state.screen+(state.scenario!=='default'?'?state='+state.scenario:'');if(location.hash===hash)render();else location.hash=hash;window.scrollTo(0,0);return;}
+      if(run){const selected=rows.find(r=>r.id===run.dataset.run);state.tab='overview';state.runId=selected.id;state.screen=selected.status==='succeeded'?'result':'running';state.scenario=selected.rating==='review'?'review':['queued','failed','cancelled','cancel_requested'].includes(selected.status)?selected.status:'default';const hash='#'+state.screen+(state.scenario!=='default'?'?state='+state.scenario:'');if(location.hash===hash)render();else location.hash=hash;window.scrollTo(0,0);return;}
       const tab=event.target.closest('[data-tab]');
       if(tab){state.tab=tab.dataset.tab;render();return;}
       const action=event.target.closest('[data-action]')?.dataset.action;
       if(action==='toggle-password'){const input=document.getElementById('password');input.type=input.type==='password'?'text':'password';event.target.closest('button').setAttribute('aria-label',input.type==='password'?'Hiện mật khẩu':'Ẩn mật khẩu');}
       if(action==='cancel')document.getElementById('cancel-dialog').showModal();
       if(action==='close-dialog')document.getElementById('cancel-dialog').close();
-      if(action==='confirm-cancel'){document.getElementById('cancel-dialog').close();navigate('running',state.scenario==='queued'?'cancelled':'cancel_requested');notify('Đã ghi nhận yêu cầu hủy trong bản minh họa.');}
+      if(action==='confirm-cancel'){const run=selectedRun();const count=reportCount(run);run.status=state.scenario==='queued'?'cancelled':'cancel_requested';run.reportCount=count;document.getElementById('cancel-dialog').close();navigate('running',run.status,run.id);notify('Đã ghi nhận yêu cầu hủy trong bản minh họa.');}
       if(action==='retry'){enqueueDemoRun(selectedRun());notify('Đã tạo lần thử mới trong bản minh họa.');}
-      if(action==='restore')navigate(state.screen);
+      if(action==='restore')navigate(state.screen,'default',state.runId);
       if(action==='clear-filters'){state.filters=null;render();}
     });
     document.addEventListener('submit',event=>{
@@ -705,7 +710,7 @@
         if(instrument!=='DEMO'){document.getElementById('instrument-hint').className='field-error';document.getElementById('instrument-hint').textContent='Bản minh họa hỗ trợ đối tượng DEMO. Vui lòng chọn lại.';document.getElementById('instrument-search').focus();return;}
         if(!date||date<'2026-01-01'||date>'2026-11-04'){document.getElementById('analysis-date').classList.add('invalid');document.getElementById('date-hint').className='field-error';document.getElementById('date-hint').textContent='Chọn ngày từ 01/01 đến 04/11/2026.';document.getElementById('analysis-date').focus();return;}
         const [year,month,day]=date.split('-');
-        enqueueDemoRun({...rows.find(run=>run.symbol==='DEMO'),iso:date,date:`${day}/${month}/${year}`});notify('Yêu cầu mẫu đã được tiếp nhận. Chọn trạng thái để xem bước tiếp theo.');
+        enqueueDemoRun({...rows.find(run=>run.symbol==='DEMO'),iso:date,date:`${day}/${month}/${year}`,language:document.getElementById('language').value});notify('Yêu cầu mẫu đã được tiếp nhận. Chọn trạng thái để xem bước tiếp theo.');
       }
     });
     document.addEventListener('input',event=>{

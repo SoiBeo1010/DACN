@@ -27,7 +27,7 @@ Tài liệu này là hợp đồng thiết kế. Khi hiện thực hóa, Pydanti
 | GET | `/instruments?q=&cursor=&limit=` | `200`, tìm đối tượng được hỗ trợ |
 | GET | `/analysis-profiles` | `200`, profile công khai và capability |
 | POST | `/analyses` | `202`, tạo phiên chờ |
-| GET | `/analyses?status=&instrument_id=&created_from=&created_to=&cursor=&limit=` | `200`, lịch sử |
+| GET | `/analyses?q=&status=&instrument_id=&created_from=&created_to=&cursor=&limit=` | `200`, lịch sử |
 | GET | `/analyses/{id}` | `200`, snapshot |
 | GET | `/analyses/{id}/events?after=0&limit=100` | `200`, sự kiện sau cursor |
 | GET | `/analyses/{id}/reports` | `200`, metadata báo cáo đã có |
@@ -101,6 +101,8 @@ Không trả session token trong JSON. Login kiểm tra Origin/Referer cùng ori
 
 Provider/model, prompt, timeout và khóa truy cập không nằm trong profile công khai. Backend snapshot phiên bản cấu hình thực thi khi tạo run.
 
+Trong MVP1, catalog/profile được seed với `data_mode = mock`; profile live chỉ được bật ở mốc 5. `/instruments` tìm theo mã/tên bằng q, sắp `(symbol, id)` ổn định, dùng cursor opaque, limit mặc định 20/tối đa 100. `available = false` hoặc tổ hợp không hỗ trợ không được tạo phiên. Backend kiểm tra lại capability, ngôn ngữ và giới hạn ngày dù FE đã kiểm tra.
+
 ## 5. Tạo phiên
 
 `POST /analyses`, bắt buộc header `Idempotency-Key` có dạng UUID:
@@ -143,8 +145,8 @@ Header `Location` bằng `links.self`. Frontend mở trang chi tiết và đọc
 {
   "id": "00000000-0000-4000-8000-000000000100",
   "status": "running",
-  "version": 3,
-  "event_cursor": 3,
+  "version": 5,
+  "event_cursor": 5,
   "data_mode": "mock",
   "instrument": {
     "id": "00000000-0000-4000-8000-000000000001",
@@ -176,6 +178,8 @@ Header `Location` bằng `links.self`. Frontend mở trang chi tiết và đọc
 
 `version` tăng theo thay đổi nghiệp vụ, không tăng mỗi heartbeat. `event_cursor` là seq cuối tại snapshot. Server đọc run, step, report metadata và decision trong một transaction snapshot nhất quán, ví dụ read-only REPEATABLE READ; không ghép các phiên bản khác nhau.
 
+`event_cursor` là mốc đối chiếu của server, không thay thế `last_read_event_seq` được FE giữ cục bộ. Khi mở Tiến trình lần đầu, FE đọc từ after=0; lần sau dùng next_cursor cuối đã tải. `capabilities.can_cancel` đúng với queued/running/cancel_requested; `can_retry` đúng với failed/cancelled khi cấu hình snapshot còn được hỗ trợ. Capability chỉ hướng dẫn UI; server luôn kiểm tra lại trạng thái và quyền khi mutation.
+
 Các enum:
 
 | Trường | Giá trị |
@@ -192,23 +196,24 @@ Khi `failed`, `error` gồm `{ "code": "WORKER_LOST", "message": "Phiên bị gi
 
 ## 7. Sự kiện và báo cáo
 
-`GET /analyses/{id}/events?after=3&limit=100`:
+`GET /analyses/{id}/events?after=5&limit=100`:
 
 ```json
 {
   "items": [
     {
-      "seq": 4,
+      "seq": 6,
       "type": "report.ready",
       "occurred_at": "2026-11-04T07:00:10Z",
       "payload": {
         "report_id": "00000000-0000-4000-8000-000000000300",
+        "revision": 1,
         "section_key": "market",
         "title": "Báo cáo kỹ thuật"
       }
     }
   ],
-  "next_cursor": 4,
+  "next_cursor": 6,
   "has_more": false
 }
 ```
@@ -217,9 +222,11 @@ Khi `failed`, `error` gồm `{ "code": "WORKER_LOST", "message": "Phiên bị gi
 
 Các loại sự kiện tối thiểu: `run.queued`, `run.started`, `step.started`, `step.completed`, `step.failed`, `report.ready`, `run.cancel_requested`, `run.cancelled`, `run.succeeded`, `run.failed`. Payload thay đổi theo type và phải có schema riêng khi triển khai.
 
-`GET /analyses/{id}/reports` trả `{ "items": [...] }` với mỗi item gồm `id`, `section_key`, `title`, `updated_at`, `content_format = markdown`, `data_mode`. Snapshot dùng cùng kiểu metadata.
+`GET /analyses/{id}/reports` trả `{ "items": [...] }` với mỗi item gồm `id`, `section_key`, `title`, `revision`, `updated_at`, `content_format = markdown`, `data_mode`. Snapshot dùng cùng kiểu metadata. revision bắt đầu từ 1 và tăng khi nội dung/title đổi; cùng section giữ report ID ổn định. Event report.ready mang report_id, section_key, title và revision tương ứng.
 
 `GET /analyses/{id}/reports/{report_id}` bổ sung `content_markdown`. Phiên còn chạy có thể trả danh sách rỗng. Phần chưa xuất hiện trong danh sách được xem là chưa có báo cáo.
+
+Endpoint nội dung trả revision mới nhất; khi revision trong snapshot đổi, FE invalidate nội dung đã cache. Nếu response nội dung mới hơn snapshot, FE giữ response mới và refetch snapshot, không ghi đè bằng response revision cũ.
 
 ## 8. Hủy và thử lại
 
@@ -242,6 +249,8 @@ Danh sách trả `{ "items": [...], "next_cursor": "<opaque>" }`; `next_cursor =
 Run item là bản gọn: `id`, `instrument` (id/symbol/name/exchange), `as_of_date`, `status`, `data_mode`, `created_at`, `finished_at`, `decision` (quality/rating hoặc null). Không chứa nội dung Markdown đầy đủ.
 
 `created_from`, `created_to` là timestamp UTC, dùng khoảng `[from, to)`. FE chuyển bộ lọc ngày theo timezone đang hiển thị thành khoảng UTC. Filter `status` nhận một enum; `instrument_id` nhận UUID. Khi đổi filter, FE bỏ cursor cũ.
+
+q là chuỗi tìm mã hoặc tên trong instrument snapshot của phiên, bỏ khoảng trắng đầu/cuối và so khớp không phân biệt hoa thường; không diễn giải q thành biểu thức SQL. Các điều kiện q/status/instrument/date được kết hợp bằng AND. Cursor gắn với bộ lọc hiện tại; đổi bất kỳ bộ lọc nào thì bắt đầu lại từ trang đầu. Ngày “đến” trên UI được đổi thành đầu ngày kế tiếp theo timezone hiển thị trước khi chuyển UTC, để bao gồm cả ngày đã chọn.
 
 ## 10. Lỗi chuẩn
 

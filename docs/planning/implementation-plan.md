@@ -61,6 +61,8 @@ Tiêu chí hoàn thành:
 - Worker chết làm phiên thất bại sau lease/recovery; thử lại tạo run mới.
 - Rating null không bị hiển thị thành Hold.
 - Lịch sử vẫn đọc được khi backend restart.
+- Tìm mã/tên qua q kết hợp các filter cho cùng kết quả giữa FE/API; ngày đến bao gồm cả ngày đã chọn.
+- Mở Tiến trình muộn vẫn đọc đủ event; report thay đổi revision làm mới nội dung đang đọc mà không cần tải lại cả trang.
 
 Đây là mốc nghiệm thu FE/BE chính trước khi tích hợp engine thật.
 

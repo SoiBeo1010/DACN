@@ -111,7 +111,7 @@ Bảng điện là luồng đọc dữ liệu định kỳ, dùng module market_
 - API đọc dữ liệu cache, không fetch nguồn ở từng request bảng điện. “Làm mới” ở UI đọc snapshot cache mới nhất, không bỏ qua hạn mức nguồn.
 - Dữ liệu có instrument ID, nguồn, chế độ mock/live, đơn vị đã chuẩn hóa, ngày giao dịch, quoted_at, fetched_at, trạng thái nguồn và độ trễ nếu biết. Giá thiếu trả null.
 - Cache có giá trước nhưng lần cập nhật lỗi: giữ giá trước, đánh dấu stale; chưa có dữ liệu trả unavailable. Thị trường đóng cửa là metadata riêng. Không tính giá cũ thành fresh chỉ vì vừa fetch lại.
-- Giá/khối lượng chuẩn hóa về VND/cổ phiếu. OHLCV ngày có cờ adjusted và completed; không ghép dữ liệu có cách điều chỉnh khác nhau vào cùng chuỗi.
+- Giá/khối lượng chuẩn hóa về VND/cổ phiếu. OHLCV ngày có cờ adjusted và is_complete; không ghép dữ liệu có cách điều chỉnh khác nhau vào cùng chuỗi.
 - Watchlist mặc định gắn user từ session; thêm/bỏ mã có tính idempotent, không cho browser chỉ định owner.
 - Tạo phiên từ bảng điện vẫn dùng CreateAnalysis. Giá ngữ cảnh được backend chụp từ cache nếu tương thích ngày phân tích, lưu bất biến trong run; input giá do client gửi bị từ chối. Ngữ cảnh này ghi “giá lúc yêu cầu”, không thay thế bộ dữ liệu lịch sử mà engine phải kiểm tra theo as_of_date.
 - Chứng khoán Việt Nam cần adapter dữ liệu/identity phù hợp. Việc có các hàm Yahoo trong repo không đồng nghĩa mọi mã VN đã phân tích được. Nút phân tích chỉ bật cho tổ hợp instrument/profile được adapter hỗ trợ.

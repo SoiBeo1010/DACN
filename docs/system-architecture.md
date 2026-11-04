@@ -45,14 +45,16 @@ flowchart TD
     API <-->|"Session, phiên, báo cáo"| DB[("PostgreSQL")]
     Worker["Worker — lấy và chạy phiên"] <-->|"Claim, heartbeat, kết quả"| DB
     Worker --> Port["AnalysisEngine interface"]
-    Port --> Mock["Mock engine"]
-    Port --> Adapter["TradingAgents adapter"]
+    Port -->|"MVP1"| Mock["Mock engine"]
+    Port -->|"Mốc 5, sau MVP1 FE/BE"| Adapter["TradingAgents adapter"]
     Adapter --> Core["Lõi TradingAgents"]
     Core <-->|"Yêu cầu dữ liệu và mô hình"| External["Provider bên ngoài"]
     Worker --> Storage["Volume riêng theo run_id"]
 ```
 
 API và worker dùng chung backend codebase và các quy tắc nghiệp vụ, được chạy bằng hai entrypoint khác nhau. API tiếp nhận và đọc dữ liệu; worker thực thi tác vụ dài. Worker không cần một HTTP server riêng.
+
+MVP1 chỉ chọn MockEngine. Nhánh TradingAgents/provider bên ngoài là phần tích hợp ở mốc 5, không phải điều kiện chạy luồng mock hoặc nghiệm thu MVP1.
 
 Trong môi trường local, có thể dùng Vite dev proxy cho `/api`; môi trường triển khai dùng reverse proxy và HTTPS. PostgreSQL và volume kết quả chỉ được truy cập từ các dịch vụ nội bộ.
 

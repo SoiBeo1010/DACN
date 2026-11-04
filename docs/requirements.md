@@ -5,7 +5,7 @@
 | Thuộc tính | Giá trị |
 |---|---|
 | Dự án | DACN — Ứng dụng web quản lý phiên phân tích |
-| Phiên bản đặc tả | 0.3 |
+| Phiên bản đặc tả | 0.4 |
 | Ngày cập nhật | 2026-11-04 |
 | Trạng thái tài liệu | Bản nháp tổng hợp để nhóm rà soát |
 | Phạm vi hiện tại | Frontend và backend; tích hợp engine qua adapter sau khi hoàn thành luồng mock |
@@ -85,9 +85,9 @@ Hướng mở rộng sau MVP1 là bảng điện chứng khoán Việt Nam, cậ
 
 | ID | Yêu cầu | Ưu tiên / giai đoạn | Phụ trách | Tiêu chí nghiệm thu | Trạng thái |
 |---|---|---|---|---|---|
-| FR-13 | Cho phép đọc các báo cáo đã lưu, kể cả khi phiên chưa hoàn tất. | P0 · FE/BE | FE + BE | Mở từng phần từ danh sách báo cáo; nội dung Markdown đúng phiên; báo cáo đã hoàn thành vẫn đọc được khi failed/cancelled; không hiển thị phần chưa có. | Chưa triển khai |
+| FR-13 | Cho phép đọc các báo cáo đã lưu, kể cả khi phiên chưa hoàn tất. | P0 · FE/BE | FE + BE | Mở từng phần đúng phiên; nội dung cache được làm mới khi revision tăng; báo cáo hoàn thành vẫn đọc được khi failed/cancelled; không hiển thị phần chưa có. | Chưa triển khai |
 | FR-14 | Hiển thị kết luận và chất lượng kết luận độc lập với trạng thái thực thi. | P0 · FE/BE | FE + BE | Hiển thị một trong năm rating khi hợp lệ; `needs_review` có cảnh báo và rating null; không đổi thiếu dữ liệu thành Hold; trường không được cung cấp không được tạo thêm; áp dụng BR-05, BR-06. | Chưa triển khai |
-| FR-15 | Cung cấp lịch sử cá nhân có tìm kiếm, lọc và phân trang. | P0 · FE/BE | FE + BE | Lọc theo instrument, trạng thái, khoảng ngày tạo; thứ tự mới nhất trước; phân trang cursor; URL giữ điều kiện; có trạng thái rỗng và không tìm thấy phù hợp. | Chưa triển khai |
+| FR-15 | Cung cấp lịch sử cá nhân có tìm kiếm, lọc và phân trang. | P0 · FE/BE | FE + BE | Tìm q theo mã/tên trong snapshot; kết hợp instrument, trạng thái và khoảng ngày tạo bằng AND; mới nhất trước; cursor và URL giữ đúng bộ lọc; có trạng thái rỗng/không tìm thấy. | Chưa triển khai |
 | FR-16 | Cho phép mở trực tiếp một phiên đã có. | P0 · FE/BE | FE + BE | Sau đăng nhập, mở URL/refresh trang chi tiết đọc đúng snapshot của owner; kết quả đã lưu đọc lại sau restart dịch vụ; URL không tạo run mới. | Chưa triển khai |
 
 ### 4.4. Hủy, thử lại và xử lý gián đoạn
@@ -154,7 +154,7 @@ NFR-12 ghi nhận ràng buộc nguồn lực hiện tại. Tên nhà cung cấp 
 | BR-09 | Mock và live là hai chế độ tách biệt. Không ghép instrument mock với profile live hoặc ngược lại. Live chỉ dữ liệu nguồn thật, không bảo đảm dữ liệu tức thời. Kịch bản lỗi giả lập chỉ bật ở môi trường dev/test. | FR-05, FR-20, NFR-10 |
 | BR-10 | State, memory, artifact và checkpoint được cô lập theo run. MVP không chia sẻ bộ nhớ liên phiên. Các báo cáo hoàn thành vẫn được lưu và đọc khi run failed/cancelled. | FR-13, FR-21 |
 | BR-11 | Worker chỉ được ghi khi còn claim và lease hợp lệ. Lease hết hạn dẫn tới failed/WORKER_LOST qua recovery; quá deadline là failed/RUN_TIMEOUT. Không tự chạy lại cả phiên; người dùng chủ động thử lại. | FR-09, FR-19, NFR-04 |
-| BR-12 | Snapshot tiến độ lấy từ server. Event được đánh số tăng theo run; FE đọc tiếp bằng cursor và dedupe. Nội dung chưa có không được tạo thay bằng số liệu hoặc phần trăm giả định. | FR-10, FR-11, FR-14 |
+| BR-12 | Snapshot tiến độ lấy từ server. Event tăng theo run; FE đọc từ after=0 lần đầu, sau đó từ next_cursor đã tải và dedupe, không nhảy theo event_cursor của snapshot. Báo cáo thay đổi tăng revision để FE làm mới cache. Không tạo số liệu hoặc phần trăm giả định. | FR-10, FR-11, FR-13, FR-14 |
 | BR-13 | **Sau MVP1:** quoted_at là thời điểm dữ liệu giá từ nguồn; fetched_at là lúc server lấy. Fetch lại giá cũ không làm nó thành mới. Thiếu giá dùng null; độ trễ không biết được ghi rõ. | FR-24 |
 | BR-14 | **Sau MVP1:** giá bảng điện và dữ liệu phân tích là hai ngữ cảnh. Giá mới không sửa phiên cũ. Chỉ ghi snapshot giá khi tương thích ngày phân tích; không nhận giá tương lai cho phân tích lịch sử. | FR-14, FR-26 |
 | BR-15 | **Sau MVP1:** đọc giá/biểu đồ không gọi LLM; user xác nhận tạo phiên, backend resolve giá. Watchlist chỉ lưu mã yêu thích; không cấp quyền đọc kết quả của user khác. | FR-23, FR-26, NFR-01, NFR-13 |
@@ -210,10 +210,10 @@ Các đường API rút gọn trong bảng dùng prefix `/api/v1`. Chi tiết re
 | TC-03 | Tìm instrument trùng mã khác sàn; chọn profile/ngày/ngôn ngữ hợp lệ và không hợp lệ; chỉ tổ hợp hỗ trợ được tạo phiên. | FR-04, FR-05, FR-06 |
 | TC-04 | Từ form, tạo phiên mock, xem tiến độ, báo cáo và kết luận; đóng rồi mở URL vẫn đọc đúng phiên; không gọi provider thật. | FR-07, FR-10, FR-13, FR-20, NFR-12 |
 | TC-05 | Gửi đồng thời cùng key, khác key ở biên hạn mức, key khác payload và claim bằng hai worker; không tạo trùng hoặc vượt quy tắc quota/claim. | FR-08, FR-09, NFR-04 |
-| TC-06 | Nhận event theo nhiều trang cursor, lặp response, đổi tab, terminal và mất mạng; FE dedupe, giữ snapshot, phục hồi và dừng poll đúng lúc. | FR-10, FR-11, FR-12, NFR-07 |
-| TC-07 | Đọc báo cáo từng phần khi running/failed/cancelled, chuyển phần giữ ngữ cảnh; nội dung có HTML/script/URL nguy hiểm không được thực thi. | FR-13, NFR-03 |
+| TC-06 | Mở Tiến trình muộn, đọc nhiều trang/lặp event, đổi tab, terminal và mất mạng; FE không bỏ sót sự kiện cuối, dedupe, giữ snapshot và dừng poll đúng lúc. | FR-10, FR-11, FR-12, NFR-07 |
+| TC-07 | Đọc báo cáo khi running/failed/cancelled; giữ ngữ cảnh và tải lại khi revision tăng; response revision cũ không ghi đè mới; HTML/script/URL nguy hiểm không thực thi. | FR-13, NFR-03 |
 | TC-08 | Kiểm tra năm rating và REVIEW; hoàn tất xử lý với needs_review không thành Hold; trường thiếu không bị bịa; decision/terminal nhất quán. | FR-14, NFR-04, NFR-10 |
-| TC-09 | Lọc lịch sử, đọc tiếp cursor, mở URL trực tiếp và restart dịch vụ giữ DB; queued/history/report đã commit vẫn tồn tại. | FR-15, FR-16, NFR-05 |
+| TC-09 | Tìm q kết hợp filter/đọc cursor, kiểm tra ngày đến được bao gồm theo timezone, đổi filter bỏ cursor cũ; mở URL và restart giữ DB vẫn đọc được queued/history/report. | FR-15, FR-16, NFR-05 |
 | TC-10 | Giữ engine chạy lâu, đọc API khác, dừng worker, chờ hết lease rồi recovery; thử ghi từ claim cũ; deadline dừng process; lỗi công khai có mã tra cứu. | FR-09, FR-19, NFR-04, NFR-06, NFR-07 |
 | TC-11 | Hủy queued/running/lặp hủy, hủy tranh chấp hoàn tất, thử lại failed/cancelled, retry cấu hình cũ không còn hỗ trợ; giữ lịch sử và đúng mã lỗi. | FR-17, FR-18, NFR-04 |
 | TC-12 | Kiểm tra luồng ở 390/768/1440 px và bàn phím; mock badge, timezone và trạng thái; build/type/contract/migration/E2E trong môi trường sạch. | FR-20, NFR-08, NFR-09, NFR-10, NFR-11, NFR-12 |

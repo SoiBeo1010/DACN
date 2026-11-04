@@ -31,6 +31,7 @@ docs/
 │   └── data-model.md            # ERD và ràng buộc dữ liệu
 └── planning/
     ├── implementation-plan.md   # Mốc thực hiện và nghiệm thu MVP1
+    ├── documentation-review.md  # Kết quả rà soát tính thống nhất
     └── post-mvp-market-workspace.md # Backlog bảng điện sau MVP1
 ```
 
@@ -46,6 +47,7 @@ docs/
 | Backend | [Hợp đồng API](backend/api-contract.md) | Endpoint, schema, mã lỗi, idempotency và phân trang |
 | Backend | [Mô hình dữ liệu](backend/data-model.md) | Bảng, quan hệ, index và transaction |
 | Triển khai | [Kế hoạch thực hiện](planning/implementation-plan.md) | Thứ tự công việc, đầu ra và tiêu chí hoàn thành |
+| Kiểm tra | [Rà soát tài liệu](planning/documentation-review.md) | Các điểm đã sửa, kiểm tra prototype và quyết định còn mở |
 | Sau MVP1 | [Backlog bảng điện](planning/post-mvp-market-workspace.md) | Bố cục, API và dữ liệu dự kiến của bảng điện/watchlist; chưa bắt buộc |
 
 Prototype hiện tại minh họa luồng phân tích của MVP1 và mở trực tiếp bằng trình duyệt. Khi xem trên GitHub, đọc ảnh trong planning giao diện hoặc tải HTML về để thử. Chưa cần bổ sung màn hình bảng điện để nghiệm thu MVP1.

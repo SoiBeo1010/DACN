@@ -128,9 +128,10 @@ Seq tăng theo thứ tự commit trong từng run. Không cần seq liên tục 
 | `run_id` | FK analysis_runs |
 | `section_key` | Text; unique cùng run_id |
 | `title`, `content_markdown` | Text |
+| `revision` | Integer >= 1; tăng khi title/nội dung thay đổi |
 | `created_at`, `updated_at` | Timestamptz |
 
-Một section giữ bản hoàn chỉnh mới nhất. Nếu engine lặp lại cùng báo cáo không đổi, không ghi event trùng. Data mode lấy từ run cha, không cho client ghi đè.
+Một section giữ report ID ổn định và bản nội dung mới nhất. Khi title/nội dung thay đổi, tăng revision, updated_at và run version, ghi report.ready trong cùng transaction. Nếu engine lặp lại báo cáo không đổi, không tăng revision hoặc ghi event trùng. Data mode lấy từ run cha, không cho client ghi đè.
 
 ### `decisions`
 
@@ -144,6 +145,8 @@ Một section giữ bản hoàn chỉnh mới nhất. Nếu engine lặp lại c
 | `created_at` | Timestamptz |
 
 SQL CHECK: `quality = valid` yêu cầu rating thuộc năm giá trị; `quality = needs_review` yêu cầu `rating IS NULL`.
+
+Khi viết CHECK cho nhánh valid phải có `rating IS NOT NULL` ngoài phép kiểm tra IN; PostgreSQL không coi kết quả CHECK là NULL là một vi phạm. Như vậy quality=valid không thể lọt qua với rating rỗng.
 
 ### `idempotency_keys`
 
@@ -160,6 +163,7 @@ Retry endpoint dùng cùng bảng, có path khác trong request hash. Dùng comp
 ## 4. Index và constraint
 
 - `analysis_runs(owner_id, created_at DESC, id DESC)` cho lịch sử và cursor.
+- Tìm q theo symbol/name trong instrument_snapshot của run sau khi lọc owner; không đọc tên catalog mới để ghi đè tên lịch sử. Chỉ bổ sung index tìm kiếm khi query plan cho thấy cần.
 - Index thêm theo owner/status khi số bản ghi cần; kiểm tra bằng query plan trước khi bổ sung nhiều index.
 - Partial index `analysis_runs(created_at, id) WHERE status = 'queued'` cho worker claim.
 - Partial index `analysis_runs(lease_expires_at) WHERE status IN ('running', 'cancel_requested')` cho recovery.
@@ -177,7 +181,7 @@ Invariant “run succeeded phải có decision” được đảm bảo bằng t
 |---|---|
 | Tạo phiên | Khóa user, kiểm tra idempotency/hạn mức, insert run/steps/event/key |
 | Claim | Khóa run queued bằng SKIP LOCKED, gán claim và lease, ghi started |
-| Progress | Khóa run, kiểm tra claim/lease/state, cập nhật step/report, tăng version/seq, append event |
+| Progress | Khóa run, kiểm tra claim/lease/state, cập nhật step/report và report revision nếu thay đổi, tăng version/seq, append event |
 | Heartbeat | UPDATE có điều kiện theo claim/lease/state; không tăng version |
 | Hủy | Khóa run, đổi trạng thái, tăng version/seq, append event |
 | Hoàn tất | Kiểm tra claim và hủy, lưu báo cáo cuối/decision, đổi terminal, xóa lease/claim, append event |

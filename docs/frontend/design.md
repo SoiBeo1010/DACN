@@ -72,6 +72,7 @@ Quy tắc phụ thuộc: `app/pages → features → shared`. Feature không imp
 ```
 
 - Bộ lọc lưu trong URL để refresh và chia sẻ đường dẫn vẫn giữ điều kiện.
+- Ô tìm mã/tên gửi q tới GET /analyses; backend tìm trên snapshot của phiên. Các bộ lọc kết hợp bằng AND. Đổi tìm kiếm hoặc bộ lọc thì bỏ cursor cũ; ngày “đến” bao gồm cả ngày đã chọn theo timezone hiển thị.
 - Danh sách phân trang bằng cursor; mặc định mới nhất trước.
 - Không có dữ liệu: giải thích ngắn và hiển thị nút tạo phiên.
 - Không có kết quả lọc: giữ bộ lọc, cho phép xóa lọc.
@@ -130,6 +131,8 @@ Nhãn trạng thái thực thi và nhãn kết luận là hai component riêng.
 
 Danh sách các phần đã có; chỉ fetch nội dung đầy đủ khi mở phần. Render Markdown bằng cấu hình tắt raw HTML, loại bỏ URL nguy hiểm và mở liên kết ngoài với thuộc tính an toàn. Nội dung từ mô hình được xem là dữ liệu không tin cậy.
 
+Metadata báo cáo có revision. Khi snapshot mới cho thấy revision tăng, invalidate query nội dung đang cache theo report ID; nếu đang đọc phần đó thì tải lại. Không coi report ID ổn định là nội dung bất biến.
+
 Nếu phiên thất bại hoặc bị hủy, các báo cáo đã hoàn thành vẫn đọc được. Hiển thị rõ kết quả chưa hoàn tất. Không hiển thị ô giá mục tiêu hoặc tỷ lệ tin cậy nếu API chưa có dữ liệu tương ứng.
 
 ### Tiến trình
@@ -154,8 +157,8 @@ Query key phải bao gồm resource ID và tham số lọc, ví dụ `['analysis
 1. Fetch snapshot khi vào trang chi tiết.
 2. Poll mỗi 2 giây nếu `status` thuộc `queued`, `running`, `cancel_requested` và tab đang hiển thị.
 3. Dừng polling khi terminal; refetch ngay khi tab được mở lại hoặc mạng phục hồi.
-4. Khi `version` tăng, cập nhật snapshot; nếu mở tiến trình, đọc sự kiện sau `event_cursor` cuối đã nhận.
-5. Dedupe sự kiện theo `(run_id, seq)`; đọc tiếp tới khi `has_more = false`.
+4. Khi version tăng, cập nhật snapshot và đối chiếu report revision để làm mới nội dung đã cache.
+5. Giữ last_read_event_seq riêng với event_cursor của snapshot. Mở Tiến trình lần đầu đọc after=0; sau đó dùng next_cursor cuối đã tải, dedupe theo (run_id, seq) và đọc tiếp tới khi has_more=false. Khi phiên vừa terminal vẫn đọc hết các sự kiện còn thiếu trước khi dừng; không nhảy thẳng tới event_cursor mới của server.
 6. `404` dừng tải và hiển thị trang không tìm thấy; `401` kết thúc session phía UI.
 
 GET có thể retry tối đa hai lần với backoff khi lỗi mạng/5xx. Mutation tạo phiên không được retry tự động bằng một khóa mới. Sau hủy hoặc thử lại, invalidate snapshot và lịch sử liên quan.
@@ -178,4 +181,5 @@ HTTP client dùng `credentials: include`, gửi `X-CSRF-Token` cho mutation đã
 - Hoàn tất, thất bại, cần xem xét và bị hủy đều có giao diện riêng.
 - Đăng xuất xóa dữ liệu tài khoản trước khỏi cache.
 - Polling dừng đúng lúc; lỗi mạng không làm mất báo cáo đã tải.
+- Timeline không bỏ sót sự kiện khi mở muộn; phần báo cáo đang đọc được cập nhật khi revision tăng.
 - Nhãn giả lập xuất hiện trên danh sách, chi tiết và báo cáo của phiên mock.

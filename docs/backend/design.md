@@ -47,7 +47,7 @@ Router chỉ xác thực input, gọi use case và map response. Service chứa 
 | Use case | Trách nhiệm |
 |---|---|
 | `CreateAnalysis` | Quyền, profile, input, hạn mức, chống trùng, tạo phiên và các bước |
-| `GetAnalysis` / `ListAnalyses` | Snapshot và lịch sử theo chủ sở hữu |
+| `GetAnalysis` / `ListAnalyses` | Snapshot và lịch sử theo owner; tìm q trên mã/tên trong snapshot, kết hợp bộ lọc |
 | `CancelAnalysis` | Chuyển trạng thái hủy theo lifecycle |
 | `RetryAnalysis` | Tạo phiên mới từ input/config snapshot của phiên cũ |
 | `ReadReports` / `ReadEvents` | Kiểm tra quyền trên phiên cha trước khi đọc |
@@ -143,7 +143,9 @@ EngineResult
 
 Mock engine hỗ trợ các kịch bản: thành công, cần xem xét, thất bại giữa chừng, chạy chậm, hủy, mất worker. Công cụ cấu hình kịch bản chỉ bật trong development/test, không xuất hiện trong form người dùng triển khai thật.
 
-## 7. Tích hợp TradingAgents
+## 7. Tích hợp TradingAgents — mốc 5 sau MVP1 FE/BE
+
+MVP1 dùng MockEngine. Các thao tác đặc thù TradingAgents trong mục này chỉ bắt buộc ở mốc 5; key LLM, checkpoint hoặc nguồn dữ liệu live không phải điều kiện chạy/nghiệm thu MVP1 mock.
 
 | Điểm trong code | Cách dùng dự kiến |
 |---|---|
@@ -161,7 +163,7 @@ Output hiện tại chủ yếu là Markdown. Adapter chỉ cung cấp các trư
 
 ## 8. Báo cáo và tính nhất quán
 
-- Khi có báo cáo: cập nhật `reports`, đánh dấu bước nếu cần, tăng run version và thêm sự kiện trong cùng transaction.
+- Khi có báo cáo mới/đổi nội dung: giữ report ID theo section, tăng revision, cập nhật bước nếu cần, tăng run version và thêm report.ready trong cùng transaction. Báo cáo không đổi không tạo revision/sự kiện trùng.
 - Sự kiện có `seq` tăng trong từng run, được cấp bằng cách khóa hàng run.
 - Snapshot chứa bước, metadata báo cáo, quality và `event_cursor`; nội dung báo cáo đầy đủ được đọc riêng.
 - Khi hoàn tất: lưu decision, các phần báo cáo cuối, trạng thái `succeeded`, `finished_at` và `run.succeeded` cùng transaction.
@@ -173,6 +175,7 @@ Output hiện tại chủ yếu là Markdown. Adapter chỉ cung cấp các trư
 - Session token ngẫu nhiên chỉ nằm trong cookie; DB lưu token hash. Cookie production: HttpOnly, Secure, SameSite=Lax, Path=/api.
 - Login kiểm tra Origin/Referer cùng origin, rate limit và đổi session token sau đăng nhập. Mutation có session yêu cầu `X-CSRF-Token`.
 - Session hết hạn tuyệt đối sau 8 giờ; logout thu hồi server-side. Mỗi API dữ liệu kiểm tra owner.
+- Vô hiệu hóa user có hiệu lực với cả login mới và session đang có; mỗi request dữ liệu kiểm tra user.is_active trước khi đọc resource.
 - Secret đọc từ môi trường server. Profile công khai chỉ có mô tả và capability; người dùng không gửi provider URL, đường dẫn hoặc model ID tùy ý.
 - SQLAlchemy Session có scope riêng cho request, heartbeat và tác vụ; không dùng chung session giữa các thread/process.
 - Log có `request_id`, `run_id`, `worker_id`; lưu stack trace nội bộ và trả mã lỗi hữu ích cho người dùng.

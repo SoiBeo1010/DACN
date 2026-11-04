@@ -1,8 +1,10 @@
 # Planning giao diện frontend
 
+Các màn hình và prototype trong tài liệu này là tham khảo cho MVP1 quản lý phiên phân tích. [Bảng điện và watchlist](../planning/post-mvp-market-workspace.md) thuộc giai đoạn sau, chưa cần đưa vào bản triển khai đầu tiên.
+
 ## 1. Cách xem bản phác thảo
 
-Mở [frontend-preview.html](frontend-preview.html) bằng trình duyệt để thử các màn hình. File hoạt động độc lập khi mở trực tiếp, không cần chạy backend hay cài frontend. Nếu xem trên GitHub, tải file HTML về để mở; GitHub chỉ hiển thị mã nguồn của HTML.
+Mở [prototype.html](prototype.html) bằng trình duyệt để thử các màn hình. File hoạt động độc lập khi mở trực tiếp, không cần chạy backend hay cài frontend. Nếu xem trên GitHub, tải file HTML về để mở; GitHub chỉ hiển thị mã nguồn của HTML.
 
 Thanh **UI Planning** ở đầu trang dùng để chọn màn hình và trạng thái mẫu. Đây là công cụ xem thiết kế, không thuộc giao diện sản phẩm. Các ảnh bên dưới được chụp từ cùng file HTML.
 
@@ -183,7 +185,7 @@ Mốc bố cục tham khảo: trên 900 px dùng sidebar, 601–900 px thu gọn
 | Thất bại | Nguyên nhân có thể hiểu, mã hỗ trợ, báo cáo từng phần | Thử lại |
 | Cần xem xét | Hoàn tất xử lý nhưng không gán khuyến nghị | Đọc giới hạn dữ liệu |
 
-Prototype minh họa các trạng thái bằng fixture cục bộ. Việc đồng bộ dữ liệu thật, polling, phân trang, idempotency và phân quyền thực hiện theo [thiết kế frontend](../frontend.md) và [hợp đồng API](../api-contract.md).
+Prototype minh họa các trạng thái bằng fixture cục bộ. Việc đồng bộ dữ liệu thật, polling, phân trang, idempotency và phân quyền thực hiện theo [thiết kế frontend](design.md) và [hợp đồng API](../backend/api-contract.md).
 
 ## 12. Component để chuyển sang React
 

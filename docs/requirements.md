@@ -5,7 +5,7 @@
 | Thuộc tính | Giá trị |
 |---|---|
 | Dự án | DACN — Ứng dụng web quản lý phiên phân tích |
-| Phiên bản đặc tả | 0.1 |
+| Phiên bản đặc tả | 0.3 |
 | Ngày cập nhật | 2026-11-04 |
 | Trạng thái tài liệu | Bản nháp tổng hợp để nhóm rà soát |
 | Phạm vi hiện tại | Frontend và backend; tích hợp engine qua adapter sau khi hoàn thành luồng mock |
@@ -13,13 +13,15 @@
 
 Đây là nơi quản lý tập trung những gì sản phẩm cần đáp ứng và cách xác nhận yêu cầu đã đạt. Các tài liệu thiết kế mô tả cách thực hiện. Các lựa chọn công nghệ, bố cục mẫu và tham số vận hành không tự động trở thành yêu cầu nghiệp vụ.
 
-Hiện mới có tài liệu và prototype giao diện; ứng dụng FE/BE theo đặc tả chưa được triển khai. Các yêu cầu bên dưới đều ở trạng thái **Chưa triển khai**. Ảnh chụp và prototype không được dùng làm bằng chứng hoàn thành chức năng có backend.
+Hiện mới có tài liệu và prototype giao diện; ứng dụng FE/BE theo đặc tả chưa được triển khai. Yêu cầu của luồng phân tích ở trạng thái **Chưa triển khai**; phần bảng điện sau MVP1 được đánh dấu **Tạm hoãn**. Ảnh chụp và prototype không được dùng làm bằng chứng hoàn thành chức năng có backend.
 
 ## 2. Mục tiêu, tác nhân và phạm vi
 
 ### 2.1. Mục tiêu
 
-Người dùng có thể đăng nhập, tạo yêu cầu phân tích cho một đối tượng/ngày được hỗ trợ, theo dõi quá trình xử lý, đọc kết quả và mở lại lịch sử. Một phiên tồn tại độc lập với việc trình duyệt còn mở hay không.
+**MVP1 giữ luồng ban đầu:** đăng nhập → danh sách phiên → chọn mã/ngày/profile → tạo phiên → theo dõi tiến độ → đọc báo cáo/kết luận → mở lại lịch sử. Trang chính sau đăng nhập là `/analyses`.
+
+Phiên phân tích tồn tại độc lập với browser. MVP1 không yêu cầu bảng điện, watchlist, biểu đồ giá, collector giá định kỳ hoặc panel phân tích trên bảng điện.
 
 Giai đoạn FE/BE phải kiểm thử được toàn bộ luồng bằng engine giả lập. Giai đoạn tích hợp sau đó kết nối TradingAgents qua hợp đồng engine ổn định, giữ nguyên các hành vi đã nghiệm thu của ứng dụng.
 
@@ -37,17 +39,19 @@ Người vận hành chưa có màn hình quản trị hoặc API đọc phiên 
 
 | Giai đoạn | Bao gồm | Điều kiện nghiệm thu |
 |---|---|---|
-| FE/BE với mock | Tài khoản, catalog mock, tạo phiên, tiến độ, báo cáo, kết luận, lịch sử, hủy/thử lại, xử lý gián đoạn | Các yêu cầu áp dụng FE/BE đạt bằng dữ liệu giả lập có nhãn |
-| Tích hợp live | Adapter TradingAgents, một instrument được nguồn thực hỗ trợ, map kết quả và cô lập phiên | Đạt thêm FR-21 và kiểm tra hồi quy luồng FE/BE |
+| MVP1 — FE/BE với mock | Tài khoản, catalog mock, tạo phiên, tiến độ, báo cáo, kết luận, lịch sử, hủy/thử lại, xử lý gián đoạn | Các yêu cầu FE/BE của luồng phân tích đạt bằng dữ liệu giả lập; nghiệm thu tại mốc 4 |
+| Tích hợp engine live theo luồng cũ | Adapter TradingAgents cho mã được nguồn hỗ trợ, map kết quả và cô lập phiên | FR-21 và hồi quy luồng phân tích tại mốc 5; không phụ thuộc bảng điện |
+| Sau MVP1 — mở rộng bảng điện | Giá VN định kỳ có thể trễ, watchlist, biểu đồ ngày và phân tích từ mã | Chỉ lập kế hoạch sau nghiệm thu MVP1; FR-22–FR-26 không chặn MVP1 |
 
 Ngoài phạm vi hiện tại: tự đăng ký, khôi phục mật khẩu, giao diện quản trị, đặt lệnh thật, quản lý danh mục giao dịch, backtest diện rộng, chọn tùy ý provider/model/prompt, thông báo qua bot, chia sẻ công khai báo cáo, xóa lịch sử qua UI và resume thủ công một phiên terminal.
 
-Chưa cam kết thị trường/vendor cụ thể, độ chính xác đầu tư, lợi nhuận, lưu lượng lớn hoặc thời gian hoạt động 24/7. Những mục này cần yêu cầu và dữ liệu đánh giá riêng nếu được bổ sung.
+Hướng mở rộng sau MVP1 là bảng điện chứng khoán Việt Nam, cập nhật định kỳ và có thể trễ. Vendor, độ bao phủ mã và độ trễ thực tế chưa chốt; không bắt buộc tích hợp nguồn bảng giá VN để hoàn thành MVP1. Giá realtime, nến intraday, sổ lệnh nhiều mức, độ chính xác đầu tư, lợi nhuận, tải lớn và hoạt động 24/7 chưa được cam kết.
 
 ## 3. Quy ước quản lý
 
 - `FR`: yêu cầu chức năng; `NFR`: yêu cầu phi chức năng; `BR`: quy tắc nghiệp vụ; `TC`: kịch bản nghiệm thu.
 - `P0`: bắt buộc trong giai đoạn được ghi; `P1`: có thể thực hiện sau các yêu cầu bắt buộc của giai đoạn đó.
+- FR-01–FR-20 và NFR-01–NFR-12 áp dụng cho MVP1 FE/BE. FR-21 thuộc mốc tích hợp engine live tiếp theo của cùng luồng. FR-22–FR-26, NFR-13, BR-13–BR-15 và TC-14–TC-16 chỉ áp dụng sau MVP1.
 - Cột phụ trách chỉ nhóm công việc FE, BE hoặc vận hành; chưa gán tên thành viên.
 - Trạng thái triển khai: **Chưa triển khai → Đang triển khai → Chờ kiểm thử → Đạt**. **Tạm hoãn** cần ghi lý do và mốc xem lại.
 - Trạng thái **Đạt** yêu cầu có bằng chứng kiểm thử hoặc biên bản nghiệm thu, không chỉ có code hoặc mockup.
@@ -59,7 +63,7 @@ Chưa cam kết thị trường/vendor cụ thể, độ chính xác đầu tư,
 
 | ID | Yêu cầu | Ưu tiên / giai đoạn | Phụ trách | Tiêu chí nghiệm thu | Trạng thái |
 |---|---|---|---|---|---|
-| FR-01 | Cho phép đăng nhập bằng tài khoản đã cấp và khôi phục session hợp lệ khi tải lại trang. | P0 · FE/BE | FE + BE | Thông tin đúng mở lịch sử; sai hiển thị lỗi chung; chưa đăng nhập không đọc được API dữ liệu; tải lại không yêu cầu đăng nhập khi session còn hiệu lực. | Chưa triển khai |
+| FR-01 | Cho phép đăng nhập bằng tài khoản đã cấp và khôi phục session hợp lệ khi tải lại trang. | P0 · FE/BE | FE + BE | Thông tin đúng mở lịch sử `/analyses` hoặc trang đích hợp lệ đã yêu cầu; sai hiển thị lỗi chung; chưa đăng nhập không đọc được API dữ liệu; tải lại không yêu cầu đăng nhập khi session còn hiệu lực. | Chưa triển khai |
 | FR-02 | Cho phép đăng xuất và xử lý session hết hạn. | P0 · FE/BE | FE + BE | Logout thu hồi session; request sau đó bị từ chối; FE dừng polling, xóa cache tài khoản và về đăng nhập khi session kết thúc. | Chưa triển khai |
 | FR-03 | Cung cấp công cụ nội bộ để cấp và vô hiệu hóa tài khoản ban đầu. | P0 · FE/BE | BE + vận hành | Tạo tài khoản bằng lệnh nội bộ; user bị vô hiệu hóa không đăng nhập hoặc tiếp tục dùng session cũ; không cần trang tự đăng ký. | Chưa triển khai |
 | FR-04 | Cho phép tìm và chọn đối tượng phân tích được hỗ trợ. | P0 · FE/BE | FE + BE | Tìm theo mã/tên; hiển thị tên, sàn, loại tài sản và giới hạn ngày; hai mã giống nhau ở các sàn vẫn phân biệt được qua instrument ID. | Chưa triển khai |
@@ -101,6 +105,18 @@ Chưa cam kết thị trường/vendor cụ thể, độ chính xác đầu tư,
 | FR-20 | Cung cấp mock engine để chạy xuyên suốt ứng dụng và kiểm thử mà không cần provider. | P0 · FE/BE | BE + FE | Chạy được thành công, needs_review, lỗi, chờ lâu, hủy và mất worker bằng fixture/stub; không gọi LLM/vendor thật; chế độ mock được gắn nhãn trên các màn hình; áp dụng BR-09. | Chưa triển khai |
 | FR-21 | Tích hợp lõi TradingAgents qua adapter với hợp đồng tiến độ/báo cáo/kết quả đã chốt. | P0 · Tích hợp live | BE + FE | Ít nhất một instrument được nguồn thật hỗ trợ chạy tới kết quả; hai phiên cùng mã/ngày không dùng lẫn state, file hoặc checkpoint; output REVIEW map đúng; CI mặc định vẫn dùng stub; áp dụng BR-10. | Chưa triển khai |
 
+### 4.6. Bảng điện và theo dõi giá — sau MVP1
+
+Nhóm yêu cầu dưới đây được lưu để triển khai sau MVP1. Giữ ID để truy vết, không đưa vào đường đi bắt buộc hoặc tiêu chí nghiệm thu của MVP1. Bản thiết kế dự kiến nằm tại [backlog bảng điện](planning/post-mvp-market-workspace.md).
+
+| ID | Yêu cầu | Ưu tiên / giai đoạn | Phụ trách | Tiêu chí nghiệm thu | Trạng thái |
+|---|---|---|---|---|---|
+| FR-22 | Bảng điện VN là trang chính sau đăng nhập khi triển khai mở rộng. | P1 · Sau MVP1 | FE + BE | Hiển thị mã/tên/sàn, giá gần nhất, thay đổi và tổng khối lượng khi có; tìm/lọc trong catalog hỗ trợ; mỗi dòng có xem chi tiết và phân tích. | Tạm hoãn |
+| FR-23 | Lưu watchlist cá nhân để theo dõi nhanh các mã. | P1 · Sau MVP1 | FE + BE | Thêm/bỏ mã, không trùng, còn sau reload/restart DB; người khác không thay đổi watchlist; không coi watchlist là danh mục sở hữu. | Tạm hoãn |
+| FR-24 | Cập nhật giá định kỳ và hiển thị độ mới dữ liệu. | P1 · Sau MVP1 | FE + BE | Hiển thị thời điểm giá và lần fetch; lỗi nguồn giữ giá cũ có nhãn; thiếu giá hiển thị —; tách mock/live, delayed/unknown và thị trường đóng cửa; áp dụng BR-13. | Tạm hoãn |
+| FR-25 | Cho phép xem chi tiết mã và biểu đồ OHLCV ngày. | P1 · Sau MVP1 | FE + BE | Chọn mã từ bảng điện mở đúng instrument ID; biểu đồ có đơn vị, thời gian và khoảng ngày hỗ trợ; không có dữ liệu có trạng thái riêng; không hứa nến intraday. | Tạm hoãn |
+| FR-26 | Khởi tạo phân tích ngay từ bảng điện/chi tiết mã. | P1 · Sau MVP1 | FE + BE | Form điền sẵn mã, user xác nhận ngày/profile; dùng cùng API/idempotency; theo dõi ở panel hoặc trang đầy đủ, bảng điện vẫn cập nhật; giá đổi không tự gọi LLM; áp dụng BR-14, BR-15. | Tạm hoãn |
+
 ## 5. Yêu cầu phi chức năng
 
 Các tiêu chí dưới đây là điều kiện kiểm chứng hành vi. Chưa đặt SLA công khai, số người dùng đồng thời hay ngưỡng response time khi chưa có môi trường đo tải được thống nhất.
@@ -113,14 +129,15 @@ Các tiêu chí dưới đây là điều kiện kiểm chứng hành vi. Chưa 
 | NFR-04 | Giữ dữ liệu nhất quán khi có request hoặc worker đồng thời. | P0 · FE/BE | Integration test PostgreSQL chứng minh idempotency/quota/claim đúng khi chạy đồng thời; snapshot không trộn phiên bản; decision và terminal state commit cùng nhau; kết quả từ claim cũ bị từ chối. | Chưa triển khai |
 | NFR-05 | Dữ liệu đã xác nhận phải tồn tại qua restart thông thường. | P0 · FE/BE | Restart API/worker trong khi giữ DB/volume không làm mất queued, báo cáo hoặc lịch sử đã commit; không dùng file local tạm làm nguồn duy nhất cho dữ liệu UI. | Chưa triển khai |
 | NFR-06 | Thực thi tác vụ có giới hạn và quan sát được. | P0 · FE/BE | Engine có deadline, số lần retry hữu hạn, hạn mức run hoạt động; worker phát heartbeat; lỗi/terminal có request_id hoặc run_id để tra log; health phân biệt liveness/readiness. | Chưa triển khai |
-| NFR-07 | API tiếp tục phục vụ khi engine chạy lâu; FE chỉ đồng bộ khi cần. | P0 · FE/BE | Mock engine được giữ chờ; đồng thời login/GET/history/create không phải chờ engine kết thúc; tab ẩn và phiên terminal không tiếp tục polling định kỳ; số thời gian chạy thật được đo ở mốc load test. | Chưa triển khai |
+| NFR-07 | API tiếp tục phục vụ khi engine chạy lâu; FE chỉ đồng bộ khi cần. | P0 · FE/BE | Mock engine được giữ chờ; đồng thời login/GET/history/create không phải chờ engine kết thúc; tab ẩn và phiên terminal không tiếp tục polling định kỳ; thời gian thực tế được đo ở mốc load test. | Chưa triển khai |
 | NFR-08 | Giao diện dùng được trên desktop và mobile. | P0 · FE/BE | Kiểm tra luồng chính ở bề rộng 390, 768 và 1440 px; không tràn ngang toàn trang; nội dung bảng dài được xử lý trong vùng riêng; nút/form không bị cắt. | Chưa triển khai |
 | NFR-09 | Hỗ trợ sử dụng bằng bàn phím và trạng thái dễ hiểu. | P0 · FE/BE | Form có label; lỗi liên kết trường; focus nhìn thấy; dialog trả focus khi đóng; trạng thái có chữ ngoài màu; luồng login/create/detail dùng được bằng bàn phím. | Chưa triển khai |
 | NFR-10 | Dữ liệu ngày giờ và chế độ dữ liệu được biểu diễn nhất quán. | P0 · FE/BE | Timestamp API là UTC ISO 8601; ngày nghiệp vụ theo timezone instrument; UI hiển thị đúng ngữ cảnh; không trộn mock/live; mock có nhãn cả ở lịch sử, chi tiết và báo cáo. | Chưa triển khai |
 | NFR-11 | Hợp đồng FE/BE và migration có thể kiểm chứng lặp lại. | P0 · FE/BE | OpenAPI sinh từ schema; FE types/fixture được kiểm tra tương thích; migration chạy từ DB rỗng; có E2E mock và kiểm tra cài đặt lõi; CI mặc định không cần khóa provider thật. | Chưa triển khai |
 | NFR-12 | Có thể chạy demo mà chưa cần thuê máy chủ hoặc mua tên miền. | P0 · FE/BE | Có hướng dẫn chạy local FE/API/worker/PostgreSQL với mock engine; demo trọn luồng bằng máy nhóm được chọn; deployment thật và tài nguyên tối thiểu được xác nhận riêng, không giả định gói hosting miễn phí chạy worker liên tục. | Chưa triển khai |
+| NFR-13 | Theo dõi giá dùng tài nguyên có giới hạn và độc lập với phân tích AI. | P1 · Sau MVP1 | Giá được fetch theo lô/cache dùng chung; thêm user không tạo một collector riêng; tab ẩn dừng polling giá; engine chạy lâu không chặn quote API; chu kỳ nguồn và backoff cấu hình được. | Tạm hoãn |
 
-NFR-12 ghi nhận ràng buộc nguồn lực hiện tại. Tên nhà cung cấp hosting, giá dịch vụ và các quyền lợi miễn phí không phải cam kết trong đặc tả này.
+NFR-12 ghi nhận ràng buộc nguồn lực hiện tại. Tên nhà cung cấp hosting, giá dịch vụ và các quyền lợi miễn phí không phải cam kết trong đặc tả này. NFR-13 chỉ áp dụng khi triển khai bảng điện sau MVP1.
 
 ## 6. Quy tắc nghiệp vụ
 
@@ -138,6 +155,9 @@ NFR-12 ghi nhận ràng buộc nguồn lực hiện tại. Tên nhà cung cấp 
 | BR-10 | State, memory, artifact và checkpoint được cô lập theo run. MVP không chia sẻ bộ nhớ liên phiên. Các báo cáo hoàn thành vẫn được lưu và đọc khi run failed/cancelled. | FR-13, FR-21 |
 | BR-11 | Worker chỉ được ghi khi còn claim và lease hợp lệ. Lease hết hạn dẫn tới failed/WORKER_LOST qua recovery; quá deadline là failed/RUN_TIMEOUT. Không tự chạy lại cả phiên; người dùng chủ động thử lại. | FR-09, FR-19, NFR-04 |
 | BR-12 | Snapshot tiến độ lấy từ server. Event được đánh số tăng theo run; FE đọc tiếp bằng cursor và dedupe. Nội dung chưa có không được tạo thay bằng số liệu hoặc phần trăm giả định. | FR-10, FR-11, FR-14 |
+| BR-13 | **Sau MVP1:** quoted_at là thời điểm dữ liệu giá từ nguồn; fetched_at là lúc server lấy. Fetch lại giá cũ không làm nó thành mới. Thiếu giá dùng null; độ trễ không biết được ghi rõ. | FR-24 |
+| BR-14 | **Sau MVP1:** giá bảng điện và dữ liệu phân tích là hai ngữ cảnh. Giá mới không sửa phiên cũ. Chỉ ghi snapshot giá khi tương thích ngày phân tích; không nhận giá tương lai cho phân tích lịch sử. | FR-14, FR-26 |
+| BR-15 | **Sau MVP1:** đọc giá/biểu đồ không gọi LLM; user xác nhận tạo phiên, backend resolve giá. Watchlist chỉ lưu mã yêu thích; không cấp quyền đọc kết quả của user khác. | FR-23, FR-26, NFR-01, NFR-13 |
 
 ### 6.1. Tham số khởi đầu có thể cấu hình
 
@@ -156,11 +176,13 @@ NFR-12 ghi nhận ràng buộc nguồn lực hiện tại. Tên nhà cung cấp 
 
 ## 7. Liên kết yêu cầu với màn hình, API và kiểm thử
 
-Mã màn hình S01–S06 tham chiếu [planning giao diện](planning/frontend-ui.md): đăng nhập, lịch sử, tạo phiên, tiến độ, kết quả và báo cáo. S04/S05/S06 là các cách hiển thị của cùng resource phiên phân tích.
+Mã màn hình S01–S06 tham chiếu [planning giao diện](frontend/ui-planning.md): đăng nhập, lịch sử, tạo phiên, tiến độ, kết quả và báo cáo. S04/S05/S06 là các cách hiển thị của cùng resource phiên phân tích.
+
+S07 (bảng điện) và S08 (chi tiết cổ phiếu) chỉ thuộc [phần mở rộng sau MVP1](planning/post-mvp-market-workspace.md). Prototype hiện tại minh họa đúng luồng phân tích của MVP1; chưa cần hai màn hình này để nghiệm thu.
 
 | Yêu cầu | Màn hình / thành phần | API hoặc điểm tích hợp | Kịch bản nghiệm thu |
 |---|---|---|---|
-| FR-01, FR-02, FR-03 | S01, AppShell; lệnh quản trị | `/auth/login`, `/auth/session`, `/auth/logout`; công cụ cấp user | TC-01, TC-02 |
+| FR-01, FR-02, FR-03 | S01 → S02, AppShell; lệnh quản trị | `/auth/login`, `/auth/session`, `/auth/logout`; công cụ cấp user | TC-01, TC-02 |
 | FR-04, FR-05, FR-06 | S03 | `/instruments`, `/analysis-profiles`, validation `/analyses` | TC-03 |
 | FR-07, FR-08 | S03 → S04 | `POST /analyses`, transaction idempotency | TC-04, TC-05 |
 | FR-09 | Worker, S04 | Claim/lease/executor, không có endpoint worker công khai | TC-05, TC-10 |
@@ -171,12 +193,15 @@ Mã màn hình S01–S06 tham chiếu [planning giao diện](planning/frontend-u
 | FR-19 | S04 lỗi; worker/recovery | Snapshot error, heartbeat, deadline | TC-10 |
 | FR-20 | S01–S06, Mock engine | Hợp đồng engine và fixture dev/test | TC-04 đến TC-12 |
 | FR-21 | Adapter engine, S04–S06 | TradingAgents → AnalysisEngine | TC-13 |
+| FR-22, FR-24 | Sau MVP1: S07, S08 | API dự kiến `/market/quotes`, `/instruments/{id}` | TC-14 · Sau MVP1 |
+| FR-23 | Sau MVP1: S07 watchlist | API dự kiến `/watchlist`, `/watchlist/items/{instrument_id}` | TC-15 · Sau MVP1 |
+| FR-25, FR-26 | Sau MVP1: S07/S08 → panel phân tích | API dự kiến `/instruments/{id}/ohlcv`, `POST /analyses` | TC-16 · Sau MVP1 |
 
-Các đường API rút gọn trong bảng dùng prefix `/api/v1`. Chi tiết request, response, mã lỗi và phân trang nằm tại [api-contract.md](api-contract.md).
+Các đường API rút gọn trong bảng dùng prefix `/api/v1`. Chi tiết request, response, mã lỗi và phân trang nằm tại [hợp đồng API](backend/api-contract.md).
 
 ## 8. Kịch bản nghiệm thu
 
-Đây là danh mục kiểm thử dự kiến, chưa phải kết quả test đã đạt. Test về transaction/claim dùng PostgreSQL thật; ca nghiệm thu ứng dụng dùng engine mock trừ TC-13.
+Đây là danh mục kiểm thử dự kiến, chưa phải kết quả test đã đạt. TC-01–TC-12 dùng cho MVP1 FE/BE; TC-13 thuộc mốc tích hợp engine live theo luồng cũ. TC-14–TC-16 chỉ áp dụng sau MVP1. Test transaction/claim dùng PostgreSQL thật; luồng ứng dụng dùng mock trừ TC-13.
 
 | ID | Kịch bản và kết quả mong đợi | Yêu cầu chính |
 |---|---|---|
@@ -193,6 +218,9 @@ Các đường API rút gọn trong bảng dùng prefix `/api/v1`. Chi tiết re
 | TC-11 | Hủy queued/running/lặp hủy, hủy tranh chấp hoàn tất, thử lại failed/cancelled, retry cấu hình cũ không còn hỗ trợ; giữ lịch sử và đúng mã lỗi. | FR-17, FR-18, NFR-04 |
 | TC-12 | Kiểm tra luồng ở 390/768/1440 px và bàn phím; mock badge, timezone và trạng thái; build/type/contract/migration/E2E trong môi trường sạch. | FR-20, NFR-08, NFR-09, NFR-10, NFR-11, NFR-12 |
 | TC-13 | Smoke test chủ động một instrument live; hai run cùng mã/ngày cô lập; stub lỗi/REVIEW map đúng; secret không xuất hiện ở UI/API/log công khai. | FR-21, NFR-03, NFR-10 |
+| TC-14 | **Sau MVP1:** bảng điện poll theo lô, xử lý giá cũ/thiếu/lỗi/đóng cửa; chia sẻ cache, không chặn bởi engine. | FR-22, FR-24, NFR-13 |
+| TC-15 | **Sau MVP1:** thêm/bỏ mã, reload, đổi tài khoản; watchlist không trùng hoặc lẫn owner. | FR-23, NFR-01 |
+| TC-16 | **Sau MVP1:** phân tích từ mã, biểu đồ/ngày đúng; giá cập nhật không sửa kết luận cũ hoặc tự gọi mô hình. | FR-25, FR-26, BR-14, BR-15 |
 
 Khi triển khai, ghi đường dẫn test, CI run hoặc biên bản demo vào cột ghi chú/bằng chứng được bổ sung cạnh yêu cầu. Chỉ đổi trạng thái sang Đạt sau khi các ca liên quan đạt trên môi trường đã ghi nhận.
 
@@ -205,8 +233,9 @@ Khi triển khai, ghi đường dẫn test, CI run hoặc biên bản demo vào 
 | 3. Tạo/theo dõi | FR-07–FR-12, FR-20, NFR-04, NFR-07 | Luồng queued → running, progress và chống trùng đạt |
 | 4. Kết quả/gián đoạn | FR-13–FR-19, NFR-05–NFR-12 | Toàn bộ yêu cầu FE/BE đạt bằng mock; có demo local |
 | 5. Engine live | FR-21 và hồi quy các yêu cầu liên quan | Một luồng live đạt, FE/BE mock vẫn vượt kiểm thử |
+| Sau MVP1: bảng điện | FR-22–FR-26, NFR-13, TC-14–TC-16 | Lập lịch riêng sau MVP1; không chặn các mốc 1–5 của luồng phân tích |
 
-Các NFR áp dụng xuyên suốt được kiểm tra từ lúc xây thành phần tương ứng, không dồn toàn bộ tới mốc 4. Lịch, nhân lực và đầu ra chi tiết nằm tại [implementation-plan.md](implementation-plan.md).
+Các NFR áp dụng xuyên suốt được kiểm tra từ lúc xây thành phần tương ứng, không dồn toàn bộ tới mốc 4. Lịch, nhân lực và đầu ra chi tiết nằm tại [kế hoạch triển khai](planning/implementation-plan.md).
 
 ## 10. Điểm còn mở và phụ thuộc
 
@@ -215,7 +244,7 @@ Các NFR áp dụng xuyên suốt được kiểm tra từ lúc xây thành ph�
 | OPEN-01 | Thành viên phụ trách, thời hạn và quy mô người dùng demo | Trước khi lập sprint |
 | OPEN-02 | Máy demo, tài nguyên tối thiểu và phương án public URL nếu cần | Trước nghiệm thu triển khai; không chặn phát triển local |
 | OPEN-03 | Ngưỡng response time, tải đồng thời và môi trường đo | Trước nghiệm thu hiệu năng; hiện chưa có SLA |
-| OPEN-04 | Provider/instrument/thị trường live, quyền truy cập và ngân sách gọi API | Trước mốc 5 |
+| OPEN-04 | Provider/instrument live cho luồng phân tích; quyền truy cập và ngân sách LLM/data | Trước mốc 5; nguồn bảng giá VN chỉ chốt khi triển khai phần sau MVP1 |
 | OPEN-05 | Retention báo cáo/artifact, backup/restore và xóa tài khoản | Trước dùng dữ liệu ngoài nhóm hoặc vận hành lâu dài |
 | OPEN-06 | Ngưỡng rate limit, kích thước báo cáo và deadline sau đo thực tế | Khi chạy integration/load test |
 
@@ -234,8 +263,9 @@ Nếu phát hiện mâu thuẫn giữa đặc tả này và thiết kế/API, gh
 ## 12. Tài liệu liên quan
 
 - [Kiến trúc tổng thể](system-architecture.md): thành phần và luồng dữ liệu.
-- [Thiết kế frontend](frontend.md), [planning giao diện](planning/frontend-ui.md): màn hình, tương tác và prototype.
-- [Thiết kế backend](backend.md): service, worker, engine adapter và cơ chế phục hồi.
-- [Hợp đồng API](api-contract.md): HTTP schema và mã lỗi.
-- [Mô hình dữ liệu](data-model.md): lưu trữ, ràng buộc và transaction.
-- [Kế hoạch triển khai](implementation-plan.md): thứ tự và đầu ra các mốc.
+- [Thiết kế frontend](frontend/design.md), [planning giao diện](frontend/ui-planning.md): màn hình, tương tác và prototype.
+- [Backlog bảng điện sau MVP1](planning/post-mvp-market-workspace.md): hướng mở rộng, chưa thuộc đường đi bắt buộc hiện tại.
+- [Thiết kế backend](backend/design.md): service, worker, engine adapter và cơ chế phục hồi.
+- [Hợp đồng API](backend/api-contract.md): HTTP schema và mã lỗi.
+- [Mô hình dữ liệu](backend/data-model.md): lưu trữ, ràng buộc và transaction.
+- [Kế hoạch triển khai](planning/implementation-plan.md): thứ tự và đầu ra các mốc.

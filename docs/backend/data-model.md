@@ -1,6 +1,8 @@
 # Mô hình dữ liệu
 
-Các yêu cầu và quy tắc nghiệp vụ cần được dữ liệu bảo đảm được quản lý tại [requirements.md](requirements.md), đặc biệt là quyền sở hữu, lifecycle, idempotency và tính nhất quán.
+Các yêu cầu và quy tắc nghiệp vụ cần được dữ liệu bảo đảm được quản lý tại [requirements.md](../requirements.md), đặc biệt là quyền sở hữu, lifecycle, idempotency và tính nhất quán.
+
+ERD và bảng dưới đây thuộc MVP1. Các bảng watchlist/quote/OHLCV và trường quote_context được lưu tại [backlog sau MVP1](../planning/post-mvp-market-workspace.md); chưa cần migration cho chúng trong MVP1.
 
 ## 1. Nguyên tắc
 

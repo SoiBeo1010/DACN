@@ -1,8 +1,10 @@
 # Thiết kế frontend
 
-Yêu cầu chức năng và phi chức năng được quản lý tại [requirements.md](requirements.md); các mã FR/NFR/BR dùng để đối chiếu khi triển khai và nghiệm thu.
+Yêu cầu chức năng và phi chức năng được quản lý tại [requirements.md](../requirements.md); các mã FR/NFR/BR dùng để đối chiếu khi triển khai và nghiệm thu.
 
-Xem [planning giao diện](planning/frontend-ui.md) để tham khảo ảnh các màn hình và [prototype tương tác](planning/frontend-preview.html). Các bản phác thảo giúp chốt bố cục trước khi triển khai React.
+Xem [planning giao diện](ui-planning.md) để tham khảo ảnh các màn hình và [prototype tương tác](prototype.html). Các bản phác thảo giúp chốt bố cục trước khi triển khai React.
+
+**MVP1:** đăng nhập → `/analyses` → tạo phiên → theo dõi → báo cáo/lịch sử. Bảng điện, watchlist và trang chi tiết giá được giữ tại [backlog sau MVP1](../planning/post-mvp-market-workspace.md), chưa thêm vào route hoặc module bắt buộc của FE.
 
 ## 1. Vai trò và cấu trúc
 
@@ -48,6 +50,7 @@ Quy tắc phụ thuộc: `app/pages → features → shared`. Feature không imp
 - Khi gửi: khóa submit lặp, giữ email và không lưu mật khẩu.
 - Khi sai: hiển thị thông báo chung, không tiết lộ email có tồn tại.
 - Khi thành công: cập nhật session cache và về trang được bảo vệ đã yêu cầu, nếu đó là đường dẫn nội bộ hợp lệ.
+- Nếu không có trang đích trước đó, mở `/analyses`.
 - Session hết hạn: dừng polling, xóa dữ liệu cache của tài khoản và chuyển về đăng nhập.
 
 Ứng dụng gọi `GET /auth/session` lúc khởi động. Cache của người dùng trước phải được xóa khi đăng xuất hoặc đổi tài khoản.

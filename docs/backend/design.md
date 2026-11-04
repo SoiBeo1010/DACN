@@ -1,6 +1,10 @@
 # Thiết kế backend
 
-Yêu cầu và quy tắc nghiệp vụ được quản lý tại [requirements.md](requirements.md). Các use case, lifecycle và cơ chế xử lý bên dưới là phương án thực hiện để đối chiếu với mã FR/NFR/BR.
+Yêu cầu và quy tắc nghiệp vụ được quản lý tại [requirements.md](../requirements.md). Các use case, lifecycle và cơ chế xử lý bên dưới là phương án thực hiện để đối chiếu với mã FR/NFR/BR.
+
+**Phạm vi hiện tại:** backend cho luồng phân tích của MVP1. Market data service, watchlist và collector định kỳ được mô tả tại [backlog sau MVP1](../planning/post-mvp-market-workspace.md); không phải dependency của API hoặc worker MVP1.
+
+Dữ liệu giá mà agent cần để lập báo cáo vẫn được lấy qua công cụ của engine; phần tạm hoãn là dịch vụ bảng giá liên tục phục vụ giao diện.
 
 ## 1. Kiến trúc module
 

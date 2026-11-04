@@ -1,6 +1,8 @@
 # Hợp đồng API frontend/backend
 
-Đối chiếu hành vi API với các mã yêu cầu FR/NFR/BR tại [requirements.md](requirements.md). Các thay đổi hành vi phải được cập nhật cùng đặc tả và kịch bản nghiệm thu liên quan.
+Đối chiếu hành vi API với các mã yêu cầu FR/NFR/BR tại [requirements.md](../requirements.md). Các thay đổi hành vi phải được cập nhật cùng đặc tả và kịch bản nghiệm thu liên quan.
+
+Hợp đồng dưới đây dành cho MVP1 theo luồng phân tích. API quote/OHLCV/watchlist chỉ là [đề xuất sau MVP1](../planning/post-mvp-market-workspace.md), chưa cần triển khai hoặc sinh vào OpenAPI của MVP1.
 
 ## 1. Quy ước chung
 

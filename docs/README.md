@@ -1,40 +1,68 @@
-# DACN — Thiết kế frontend và backend
+# DACN — Tài liệu dự án
 
-Bộ thiết kế này xác định cách xây một ứng dụng web để tạo, theo dõi và xem lại các phiên phân tích. Thiết kế được xây từ yêu cầu sản phẩm và khảo sát mã nguồn, độc lập với các tài liệu dự án trước đây.
+Bộ tài liệu tập trung vào MVP1 quản lý phiên phân tích: đăng nhập → chọn mã/ngày → tạo phiên → theo dõi tiến độ → đọc báo cáo/kết luận → mở lại lịch sử. Trang chính sau đăng nhập là `/analyses`.
 
-**Trạng thái:** đề xuất kiến trúc để triển khai; frontend, HTTP API, cơ sở dữ liệu ứng dụng và worker trong tài liệu chưa được hiện thực hóa. Ngày lập: 2026-11-04.
+Bảng điện Việt Nam, watchlist, biểu đồ và cập nhật giá định kỳ được lưu làm hướng mở rộng **sau MVP1**, không phải điều kiện để triển khai hoặc nghiệm thu MVP1.
 
-## Mục tiêu của giai đoạn hiện tại
+**Trạng thái:** đặc tả và thiết kế để triển khai; đã có prototype giao diện, chưa có ứng dụng web FE/BE hoàn chỉnh. Ngày cập nhật: 2026-11-04.
 
-Hoàn thành một luồng có thể kiểm thử: đăng nhập → chọn đối tượng phân tích → tạo phiên → xem tiến độ → đọc báo cáo và kết luận → mở lại lịch sử.
+## Bắt đầu từ đâu?
 
-Frontend và backend được phát triển với engine giả lập trước. Một adapter riêng sẽ kết nối lõi TradingAgents sau khi luồng ứng dụng hoạt động. Nguồn dữ liệu và thị trường được lựa chọn qua khả năng hỗ trợ thực tế của engine; tài liệu không mặc định một thị trường hay vendor cụ thể.
+1. Đọc [yêu cầu](requirements.md) để hiểu phạm vi, ưu tiên và tiêu chí nghiệm thu.
+2. Đọc [kiến trúc tổng thể](system-architecture.md) để hiểu các thành phần và luồng dữ liệu.
+3. Đi vào nhóm frontend hoặc backend bên dưới; dùng [API contract](backend/api-contract.md) khi phối hợp hai phía.
+4. Theo [kế hoạch triển khai](planning/implementation-plan.md) để thực hiện từng mốc.
 
-| Tài liệu | Nội dung | Người sử dụng chính |
+## Cấu trúc thư mục
+
+```text
+docs/
+├── README.md                    # Mục lục và hướng dẫn đọc
+├── requirements.md              # Quản lý tập trung yêu cầu FR/NFR/BR
+├── system-architecture.md       # Kiến trúc dùng chung
+├── frontend/
+│   ├── design.md                # Cấu trúc FE, màn hình, trạng thái
+│   ├── ui-planning.md           # Phác thảo và ảnh màn hình
+│   ├── prototype.html           # Bản tương tác mở bằng trình duyệt
+│   └── screenshots/             # Ảnh desktop/mobile
+├── backend/
+│   ├── design.md                # Module, worker, engine adapter
+│   ├── api-contract.md          # Hợp đồng FE/BE
+│   └── data-model.md            # ERD và ràng buộc dữ liệu
+└── planning/
+    ├── implementation-plan.md   # Mốc thực hiện và nghiệm thu MVP1
+    └── post-mvp-market-workspace.md # Backlog bảng điện sau MVP1
+```
+
+## Tài liệu theo nhóm công việc
+
+| Nhóm | Tài liệu | Nội dung |
 |---|---|---|
-| [Đặc tả yêu cầu](requirements.md) | Yêu cầu FR/NFR, quy tắc nghiệp vụ, ưu tiên, trạng thái và tiêu chí nghiệm thu | Cả nhóm |
-| [Kiến trúc hệ thống](system-architecture.md) | Phạm vi, quyết định công nghệ, thành phần, luồng dữ liệu | Cả nhóm |
-| [Thiết kế frontend](frontend.md) | Màn hình, điều hướng, component, quản lý trạng thái, UX | Frontend |
-| [Planning giao diện frontend](planning/frontend-ui.md) | Sáu màn hình tham khảo, ảnh desktop/mobile và prototype HTML | Cả nhóm |
-| [Thiết kế backend](backend.md) | Module, worker, vòng đời phiên, tích hợp engine, xử lý lỗi | Backend |
-| [Hợp đồng API](api-contract.md) | Endpoint, request/response, lỗi, phân trang, idempotency | Frontend và backend |
-| [Mô hình dữ liệu](data-model.md) | ERD, bảng, ràng buộc và transaction | Backend |
-| [Kế hoạch triển khai](implementation-plan.md) | Thứ tự công việc, đầu ra, tiêu chí nghiệm thu | Cả nhóm |
+| Dùng chung | [Đặc tả yêu cầu](requirements.md) | Phạm vi, FR/NFR/BR, ưu tiên, trạng thái và kịch bản nghiệm thu |
+| Dùng chung | [Kiến trúc hệ thống](system-architecture.md) | Thành phần, quyết định công nghệ và luồng dữ liệu |
+| Frontend | [Thiết kế FE](frontend/design.md) | Route, component, quản lý trạng thái và UX |
+| Frontend | [Planning giao diện](frontend/ui-planning.md) · [Prototype HTML](frontend/prototype.html) | Sáu màn hình tham khảo, ảnh desktop/mobile và tương tác mẫu |
+| Backend | [Thiết kế BE](backend/design.md) | Service, worker, lifecycle, xử lý lỗi và tích hợp engine |
+| Backend | [Hợp đồng API](backend/api-contract.md) | Endpoint, schema, mã lỗi, idempotency và phân trang |
+| Backend | [Mô hình dữ liệu](backend/data-model.md) | Bảng, quan hệ, index và transaction |
+| Triển khai | [Kế hoạch thực hiện](planning/implementation-plan.md) | Thứ tự công việc, đầu ra và tiêu chí hoàn thành |
+| Sau MVP1 | [Backlog bảng điện](planning/post-mvp-market-workspace.md) | Bố cục, API và dữ liệu dự kiến của bảng điện/watchlist; chưa bắt buộc |
 
-## Những lựa chọn đã chốt cho bản đầu
+Prototype hiện tại minh họa luồng phân tích của MVP1 và mở trực tiếp bằng trình duyệt. Khi xem trên GitHub, đọc ảnh trong planning giao diện hoặc tải HTML về để thử. Chưa cần bổ sung màn hình bảng điện để nghiệm thu MVP1.
 
-- Frontend: React, TypeScript, Vite, React Router, TanStack Query.
-- Backend: FastAPI, Pydantic, SQLAlchemy, Alembic.
-- PostgreSQL lưu dữ liệu nghiệp vụ và các phiên chờ xử lý.
-- Một worker riêng lấy việc từ PostgreSQL, chạy tối đa một phiên tại một thời điểm trong mỗi worker process.
-- Frontend lấy tiến độ bằng polling khi phiên còn hoạt động; chu kỳ mặc định 2 giây.
-- Browser và API được phục vụ cùng origin; xác thực bằng session cookie.
-- Dữ liệu giả lập luôn được gắn nhãn `mock`; engine thật luôn được gắn nhãn `live`.
+## Cách cập nhật tài liệu
 
-Các tham số vận hành là giá trị khởi đầu để kiểm thử, có thể điều chỉnh sau khi đo tải. Phiên bản thư viện sẽ được khóa khi khởi tạo ứng dụng, thay vì dùng phiên bản trôi nổi trong môi trường triển khai.
+- Thay đổi chức năng, phạm vi hoặc tiêu chí nghiệm thu: cập nhật `requirements.md`, giữ ID yêu cầu ổn định.
+- Thay đổi cách thực hiện: cập nhật thiết kế frontend/backend, API hoặc mô hình dữ liệu tương ứng; đối chiếu lại yêu cầu.
+- Thay đổi bố cục giao diện: cập nhật planning, prototype và ảnh trong cùng `frontend/`.
+- Thay đổi thứ tự hoặc mốc công việc: cập nhật kế hoạch trong `planning/`.
+- Ý tưởng sau MVP1: lưu trong backlog, gắn rõ giai đoạn và trạng thái Tạm hoãn tại requirements; không thêm vào luồng bắt buộc của MVP1.
+- Thêm hoặc di chuyển tài liệu: cập nhật mục lục này và liên kết tương đối. Mỗi tài liệu có một vị trí chính.
 
-## Ranh giới của bản thiết kế
+## Định hướng hiện tại
 
-Giai đoạn này đặc tả giao diện và dịch vụ ứng dụng. Luồng nội bộ giữa các agent thuộc phạm vi của engine; frontend nhận các bước chạy và báo cáo qua API ổn định. Việc thêm vendor, chỉnh chiến lược agent, backtest diện rộng và tích hợp đặt lệnh thuộc các giai đoạn sau.
+React/TypeScript cho frontend; FastAPI cho backend; PostgreSQL lưu phiên, báo cáo và hàng đợi; worker riêng chạy phân tích. Hoàn thiện FE/BE bằng mock trước, sau đó tích hợp TradingAgents theo cùng luồng. MVP1 không cần quote API, bảng OHLCV, watchlist hoặc collector giá.
 
-Mã lõi hiện có kế thừa [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents), được phân phối theo [Apache License 2.0](../LICENSE).
+Tham số vận hành ban đầu được ghi tại đặc tả và kiến trúc để kiểm thử, chưa phải SLA. Chi tiết phối hợp bên trong agent, mở rộng vendor, backtest diện rộng và đặt lệnh thuộc các giai đoạn sau.
+
+Mã lõi kế thừa [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents), phân phối theo [Apache License 2.0](../LICENSE).

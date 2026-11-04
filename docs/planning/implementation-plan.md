@@ -1,6 +1,6 @@
 # Kế hoạch hiện thực hóa frontend/backend
 
-Theo dõi phạm vi, ưu tiên, trạng thái triển khai và tiêu chí nghiệm thu theo mã yêu cầu tại [requirements.md](requirements.md). Các mốc bên dưới được đối chiếu với ma trận yêu cầu trong tài liệu đó.
+Theo dõi phạm vi, ưu tiên, trạng thái triển khai và tiêu chí nghiệm thu theo mã yêu cầu tại [requirements.md](../requirements.md). Các mốc bên dưới được đối chiếu với ma trận yêu cầu trong tài liệu đó.
 
 ## 1. Cách triển khai
 
@@ -8,9 +8,11 @@ Làm một lát cắt xuyên suốt bằng mock engine trước: đăng nhập, 
 
 Các mốc dưới đây đi theo đầu ra, chưa gán số tuần vì chưa có thông tin nhân lực và thời hạn. Nhóm có thể chia người làm FE và BE đồng thời sau khi chốt contract.
 
+MVP1 FE/BE nghiệm thu tại mốc 4; mốc 5 tích hợp engine live theo cùng luồng phân tích. Bảng điện, watchlist, biểu đồ, collector và API giá chỉ thuộc [backlog sau MVP1](post-mvp-market-workspace.md), không chặn các mốc 1–5. Prototype hiện có phù hợp để bắt đầu MVP1.
+
 ## 2. Mốc 1 — Chốt hợp đồng và wireframe
 
-Đã có [planning giao diện và các màn hình tham khảo](planning/frontend-ui.md), kèm [prototype HTML](planning/frontend-preview.html) để nhóm xem và chốt bố cục. Schema API và ứng dụng React sẽ được triển khai theo các mốc dưới đây.
+Đã có [planning giao diện và các màn hình tham khảo](../frontend/ui-planning.md), kèm [prototype HTML](../frontend/prototype.html) để nhóm xem và chốt bố cục. Schema API và ứng dụng React sẽ được triển khai theo các mốc dưới đây.
 
 | Frontend | Backend | Đầu ra chung |
 |---|---|---|
@@ -112,3 +114,9 @@ Trong runtime, migration chạy một lần ở bước release; API/worker khô
 - Thời gian lưu dữ liệu, môi trường deploy và ngân sách chạy engine.
 
 Các quyết định này không chặn việc triển khai FE/BE với mock engine. Phạm vi ban đầu và contract được mô tả đủ để bắt đầu mốc 1.
+
+## 10. Sau MVP1 — bảng điện Việt Nam
+
+Chỉ lập lịch phần này sau khi nghiệm thu MVP1: FR-22–FR-26, NFR-13 và TC-14–TC-16. Định hướng vẫn là bảng điện VN cập nhật định kỳ có thể trễ, watchlist, biểu đồ ngày và phân tích từ mã. Thiết kế, API và dữ liệu dự kiến nằm trong [backlog bảng điện](post-mvp-market-workspace.md).
+
+Các yêu cầu này được đánh dấu P1 / Sau MVP1 / Tạm hoãn ở requirements. Chưa chọn nguồn hoặc tích hợp giá vẫn có thể hoàn thành, demo và nghiệm thu MVP1 theo luồng ban đầu.

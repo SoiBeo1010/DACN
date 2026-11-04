@@ -2,6 +2,8 @@
 
 Các yêu cầu, phạm vi và tiêu chí nghiệm thu được quản lý tập trung tại [requirements.md](requirements.md). Tài liệu này mô tả phương án kiến trúc đáp ứng các yêu cầu đó.
 
+**Phạm vi MVP1:** quản lý phiên phân tích theo luồng ban đầu. Bảng điện, watchlist, biểu đồ và collector giá chỉ thuộc [backlog sau MVP1](planning/post-mvp-market-workspace.md); không có trong sơ đồ triển khai bắt buộc dưới đây.
+
 ## 1. Bài toán và phạm vi
 
 Người dùng cần gửi một yêu cầu phân tích, biết yêu cầu đang ở bước nào, đọc kết quả và tra cứu lại về sau. Một phiên có thể chạy lâu, lỗi do nguồn ngoài hoặc bị gián đoạn khi người dùng đóng trình duyệt. Vì vậy, vòng đời phiên thuộc backend và tồn tại độc lập với trang web đang mở.

@@ -15,18 +15,16 @@ from copy import deepcopy
 from dataclasses import asdict
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+# Allow direct execution from a checkout without installing the package.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from cli.stats_handler import StatsCallbackHandler
-from tradingagents.backtest import BacktestResult, iter_grid, summarize
 from tradingagents.agents.analysts import news_analyst
+from tradingagents.backtest import BacktestResult, iter_grid, summarize
 from tradingagents.dataflows.symbols import safe_ticker_component
 from tradingagents.default_config import DEFAULT_CONFIG
 from tradingagents.graph import analyst_execution
 from tradingagents.graph.trading_graph import TradingAgentsGraph
-
 
 MODEL_PAIRS = [
     ("q6l_d6s", "gpt-6-luna", "gpt-6-sol"),

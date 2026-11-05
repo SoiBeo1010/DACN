@@ -129,6 +129,8 @@ Một request tạo phiên thành công chỉ có nghĩa là yêu cầu đã đ�
 
 Lease đo bằng thời gian PostgreSQL. Các timestamp lưu UTC; frontend định dạng theo timezone người dùng. `as_of_date` là ngày nghiệp vụ theo timezone của đối tượng phân tích.
 
+API lấy một instant UTC và chuyển sang timezone IANA của instrument để xác định ngày hiện tại, giới hạn catalog và validation. Adapter truyền timezone snapshot thành `business_timezone` trong context của từng run; các helper kiểm tra ngày và phân loại historical/live của lõi phải dùng cùng quy tắc khi tích hợp mốc 5. Không đổi timezone toàn process. Các khoảng dữ liệu theo ngày được đổi từ ranh giới ngày nghiệp vụ sang UTC khi cần so timestamp. Thiết kế chi tiết và ca kiểm thử ranh giới ngày nằm tại [backend](backend/design.md#ngày-nghiệp-vụ-giữa-api-và-engine); đây là công việc dự kiến, chưa phải hành vi đã triển khai.
+
 ## 8. Tài liệu kỹ thuật tham chiếu
 
 - [React với TypeScript](https://react.dev/learn/typescript).

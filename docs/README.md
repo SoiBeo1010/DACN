@@ -4,7 +4,7 @@ Bộ tài liệu tập trung vào MVP1 quản lý phiên phân tích: đăng nh�
 
 Bảng điện Việt Nam, watchlist, biểu đồ và cập nhật giá định kỳ được lưu làm hướng mở rộng **sau MVP1**, không phải điều kiện để triển khai hoặc nghiệm thu MVP1.
 
-**Trạng thái:** đặc tả và thiết kế để triển khai; đã có prototype giao diện, chưa có ứng dụng web FE/BE hoàn chỉnh. Ngày cập nhật: 2026-11-04.
+**Trạng thái:** đặc tả và thiết kế để triển khai; đã có prototype giao diện, chưa có ứng dụng web FE/BE hoàn chỉnh. Ngày cập nhật: 2026-11-05.
 
 ## Bắt đầu từ đâu?
 

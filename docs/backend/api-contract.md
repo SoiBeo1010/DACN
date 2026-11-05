@@ -9,6 +9,7 @@ Hợp đồng dưới đây dành cho MVP1 theo luồng phân tích. API quote/O
 - Base path: `/api/v1`.
 - JSON UTF-8; tên trường `snake_case`; resource ID là UUID.
 - Timestamp theo ISO 8601 UTC, ngày nghiệp vụ theo `YYYY-MM-DD`.
+- `as_of_date` và giới hạn ngày catalog tính theo timezone IANA của instrument; API và engine dùng clock UTC có thể thay trong test rồi chuyển sang timezone đó. Ngày nghiệp vụ không bị đổi thành ngày UTC; xem [quy tắc adapter](design.md#ngày-nghiệp-vụ-giữa-api-và-engine).
 - Mọi endpoint dữ liệu cần session, trừ login và health.
 - Session cookie được browser gửi tự động. Mutation đã xác thực gửi thêm `X-CSRF-Token`.
 - Server sinh `request_id` và trả trong response header `X-Request-ID` cùng payload lỗi.
@@ -240,7 +241,13 @@ Endpoint nội dung trả revision mới nhất; khi revision trong snapshot đ�
 
 Body hủy là `{ "id": "...", "status": "..." }`. FE refetch snapshot. Hủy có tính idempotent theo trạng thái, không yêu cầu `Idempotency-Key`.
 
+Nếu hủy đã commit trước khi engine trả kết quả thành công, phiên vẫn kết thúc `cancelled` sau khi supervisor xác nhận process con đã thoát; `decision = null`, giữ báo cáo đã commit và ghi một `run.cancelled`. Không công bố decision/báo cáo cuối chưa publish hoặc `run.succeeded` từ kết quả đến sau. Nếu claim đã mất, worker cũ không được ghi; recovery quyết định terminal state. Nếu thành công commit trước, API hủy trả `409 INVALID_STATE` và FE đọc lại snapshot.
+
 `POST /analyses/{id}/retry` không có body và bắt buộc `Idempotency-Key`. Chỉ cho phép source `failed` hoặc `cancelled`; tạo run mới từ input/config snapshot, trả `202` cùng kiểu response tạo phiên. Nếu engine/profile version cũ không còn chạy được, trả `409 RETRY_UNAVAILABLE`; người dùng tạo phân tích mới với profile hiện tại.
+
+Retry áp dụng cùng thời hạn key 24 giờ và quy tắc replay ở mục 5. Sau xác thực/quyền owner, khóa user và kiểm tra key trước capability hiện tại hoặc quota; cùng key và request hash trả nguyên `202`/body/Location đã lưu dù run mới đã tiến triển hoặc quota hiện đã đầy. Hash gồm method, path với ID nguồn và body rỗng chuẩn hóa; dùng cùng key cho run nguồn khác trả `409 IDEMPOTENCY_CONFLICT`. Các request đồng thời cùng key chỉ tạo một run mới và một bản ghi key trong transaction. Source run không bị sửa; đường dẫn artifact/checkpoint của run mới được resolve từ ID mới.
+
+FE khóa nút thử lại trong lúc gửi, giữ key theo user/run nguồn khi chưa rõ kết quả và dùng lại khi gửi lại sau mất response. Nhận `202` luôn mở ID phiên mới từ response; không tự thay key để vượt lỗi mạng hay quota. Key khác là ý định khác, nên server không gộp mọi lần thử lại cùng nguồn thành một run duy nhất.
 
 ## 9. Lịch sử và phân trang
 

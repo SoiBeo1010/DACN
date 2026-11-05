@@ -5,8 +5,8 @@
 | Thuộc tính | Giá trị |
 |---|---|
 | Dự án | DACN — Ứng dụng web quản lý phiên phân tích |
-| Phiên bản đặc tả | 0.4 |
-| Ngày cập nhật | 2026-11-04 |
+| Phiên bản đặc tả | 0.5 |
+| Ngày cập nhật | 2026-11-05 |
 | Trạng thái tài liệu | Bản nháp tổng hợp để nhóm rà soát |
 | Phạm vi hiện tại | Frontend và backend; tích hợp engine qua adapter sau khi hoàn thành luồng mock |
 | Nguồn tổng hợp | Các tài liệu thiết kế FE, BE, API, dữ liệu và kế hoạch trong `docs/` |
@@ -52,6 +52,7 @@ Hướng mở rộng sau MVP1 là bảng điện chứng khoán Việt Nam, cậ
 - `FR`: yêu cầu chức năng; `NFR`: yêu cầu phi chức năng; `BR`: quy tắc nghiệp vụ; `TC`: kịch bản nghiệm thu.
 - `P0`: bắt buộc trong giai đoạn được ghi; `P1`: có thể thực hiện sau các yêu cầu bắt buộc của giai đoạn đó.
 - FR-01–FR-20 và NFR-01–NFR-12 áp dụng cho MVP1 FE/BE. FR-21 thuộc mốc tích hợp engine live tiếp theo của cùng luồng. FR-22–FR-26, NFR-13, BR-13–BR-15 và TC-14–TC-16 chỉ áp dụng sau MVP1.
+- NFR-10 được kiểm tra với API/UI/mock trong MVP1; phần đối chiếu timezone và sửa helper của lõi live được kiểm tra bổ sung cùng FR-21 tại mốc 5.
 - Cột phụ trách chỉ nhóm công việc FE, BE hoặc vận hành; chưa gán tên thành viên.
 - Trạng thái triển khai: **Chưa triển khai → Đang triển khai → Chờ kiểm thử → Đạt**. **Tạm hoãn** cần ghi lý do và mốc xem lại.
 - Trạng thái **Đạt** yêu cầu có bằng chứng kiểm thử hoặc biên bản nghiệm thu, không chỉ có code hoặc mockup.
@@ -94,8 +95,8 @@ Hướng mở rộng sau MVP1 là bảng điện chứng khoán Việt Nam, cậ
 
 | ID | Yêu cầu | Ưu tiên / giai đoạn | Phụ trách | Tiêu chí nghiệm thu | Trạng thái |
 |---|---|---|---|---|---|
-| FR-17 | Cho phép hủy phiên hợp lệ và theo dõi quá trình dừng. | P0 · FE/BE | FE + BE | Hủy queued chuyển cancelled; hủy running chuyển cancel_requested rồi terminal khi được xác nhận; thao tác lặp không sinh sự kiện trùng; giữ báo cáo đã có; áp dụng BR-07. | Chưa triển khai |
-| FR-18 | Cho phép thử lại phiên thất bại hoặc đã hủy bằng một phiên mới. | P0 · FE/BE | FE + BE | Run mới có ID khác và liên kết nguồn; giữ lịch sử cũ; snapshot nguồn được dùng nếu còn khả dụng; source không hợp lệ hoặc cấu hình không còn chạy được nhận `409`; áp dụng BR-08. | Chưa triển khai |
+| FR-17 | Cho phép hủy phiên hợp lệ và theo dõi quá trình dừng. | P0 · FE/BE | FE + BE | Hủy queued chuyển cancelled; hủy running chuyển cancel_requested rồi terminal khi được xác nhận; nếu kết quả thành công đến sau hủy, xác nhận process đã thoát rồi commit cancelled, không có decision; thao tác lặp không sinh sự kiện trùng; giữ báo cáo đã có; áp dụng BR-07. | Chưa triển khai |
+| FR-18 | Cho phép thử lại phiên thất bại hoặc đã hủy bằng một phiên mới. | P0 · FE/BE | FE + BE | Run mới có ID khác và liên kết nguồn; double click, mất response hoặc reload cùng tab giữ key đang chờ và chỉ tạo một run mới; `202` mở đúng ID mới; giữ lịch sử cũ; snapshot nguồn được dùng nếu còn khả dụng; source không hợp lệ hoặc cấu hình không còn chạy được nhận `409`; áp dụng BR-03, BR-08. | Chưa triển khai |
 | FR-19 | Xác định và công bố lỗi engine, quá hạn hoặc mất worker. | P0 · FE/BE | BE + FE | Run chuyển failed cùng mã/thông báo công khai; process quá hạn bị dừng; worker mất claim không ghi kết quả muộn; có đường thử lại chủ động; áp dụng BR-11. | Chưa triển khai |
 
 ### 4.5. Engine giả lập và tích hợp
@@ -132,7 +133,7 @@ Các tiêu chí dưới đây là điều kiện kiểm chứng hành vi. Chưa 
 | NFR-07 | API tiếp tục phục vụ khi engine chạy lâu; FE chỉ đồng bộ khi cần. | P0 · FE/BE | Mock engine được giữ chờ; đồng thời login/GET/history/create không phải chờ engine kết thúc; tab ẩn và phiên terminal không tiếp tục polling định kỳ; thời gian thực tế được đo ở mốc load test. | Chưa triển khai |
 | NFR-08 | Giao diện dùng được trên desktop và mobile. | P0 · FE/BE | Kiểm tra luồng chính ở bề rộng 390, 768 và 1440 px; không tràn ngang toàn trang; nội dung bảng dài được xử lý trong vùng riêng; nút/form không bị cắt. | Chưa triển khai |
 | NFR-09 | Hỗ trợ sử dụng bằng bàn phím và trạng thái dễ hiểu. | P0 · FE/BE | Form có label; lỗi liên kết trường; focus nhìn thấy; dialog trả focus khi đóng; trạng thái có chữ ngoài màu; luồng login/create/detail dùng được bằng bàn phím. | Chưa triển khai |
-| NFR-10 | Dữ liệu ngày giờ và chế độ dữ liệu được biểu diễn nhất quán. | P0 · FE/BE | Timestamp API là UTC ISO 8601; ngày nghiệp vụ theo timezone instrument; UI hiển thị đúng ngữ cảnh; không trộn mock/live; mock có nhãn cả ở lịch sử, chi tiết và báo cáo. | Chưa triển khai |
+| NFR-10 | Dữ liệu ngày giờ và chế độ dữ liệu được biểu diễn nhất quán. | P0 · FE/BE | Timestamp API là UTC ISO 8601; ngày nghiệp vụ, giới hạn catalog và validation theo timezone instrument, không phụ thuộc timezone máy; UI hiển thị đúng ngữ cảnh; không trộn mock/live; mock có nhãn cả ở lịch sử, chi tiết và báo cáo. API/engine được đối chiếu clock qua nửa đêm/DST ở mốc 5. | Chưa triển khai |
 | NFR-11 | Hợp đồng FE/BE và migration có thể kiểm chứng lặp lại. | P0 · FE/BE | OpenAPI sinh từ schema; FE types/fixture được kiểm tra tương thích; migration chạy từ DB rỗng; có E2E mock và kiểm tra cài đặt lõi; CI mặc định không cần khóa provider thật. | Chưa triển khai |
 | NFR-12 | Có thể chạy demo mà chưa cần thuê máy chủ hoặc mua tên miền. | P0 · FE/BE | Có hướng dẫn chạy local FE/API/worker/PostgreSQL với mock engine; demo trọn luồng bằng máy nhóm được chọn; deployment thật và tài nguyên tối thiểu được xác nhận riêng, không giả định gói hosting miễn phí chạy worker liên tục. | Chưa triển khai |
 | NFR-13 | Theo dõi giá dùng tài nguyên có giới hạn và độc lập với phân tích AI. | P1 · Sau MVP1 | Giá được fetch theo lô/cache dùng chung; thêm user không tạo một collector riêng; tab ẩn dừng polling giá; engine chạy lâu không chặn quote API; chu kỳ nguồn và backoff cấu hình được. | Tạm hoãn |
@@ -145,11 +146,11 @@ NFR-12 ghi nhận ràng buộc nguồn lực hiện tại. Tên nhà cung cấp 
 |---|---|---|
 | BR-01 | Một phiên thuộc đúng một user, có một instrument ID, ngày dữ liệu, profile/version và ngôn ngữ. Chủ sở hữu được xác định từ session. | FR-07, NFR-01 |
 | BR-02 | Input và cấu hình đã resolve được snapshot khi tạo, bất biến trong phiên; secret không được snapshot. Thay catalog/profile về sau không sửa kết quả lịch sử. | FR-05, FR-07, FR-16 |
-| BR-03 | Idempotency key có phạm vi user, hiệu lực mặc định 24 giờ. Cùng key và request chuẩn hóa trả resource cũ; request khác bị từ chối. Ý định mới có key mới; retry endpoint cũng có chống trùng. | FR-08, FR-18 |
+| BR-03 | Idempotency key có phạm vi user, hiệu lực mặc định 24 giờ. Cùng key và request chuẩn hóa trả resource cũ trước kiểm tra capability/quota hiện tại; request khác bị từ chối. Ý định mới có key mới; retry endpoint cũng có chống trùng. FE giữ key của ý định retry chưa rõ kết quả khi gửi lại/reload cùng tab; hết 24 giờ không tự tạo key để gửi tiếp. | FR-08, FR-18 |
 | BR-04 | Lifecycle gồm queued, running, cancel_requested, succeeded, failed, cancelled. Ba trạng thái cuối là terminal, không chuyển ngược; mở lại trang không khởi chạy phiên mới. | FR-09, FR-10, FR-16 |
 | BR-05 | Trạng thái thực thi và chất lượng kết luận là hai thuộc tính riêng. Succeeded cần có decision; valid cần một rating hợp lệ; needs_review dùng rating null. Không có kết quả cuối vì engine hỏng là failed. | FR-14, FR-19 |
 | BR-06 | Năm rating là Buy, Overweight, Hold, Underweight, Sell. REVIEW của lõi được chuyển thành needs_review, không phải Hold. FE chỉ trình bày các trường backend thực sự cung cấp. | FR-14, FR-21 |
-| BR-07 | Hủy queued có hiệu lực ngay. Hủy running phải chờ xác nhận dừng; request provider đang bay có thể chưa dừng tức thời. Nếu cancel_requested commit trước, không công bố quyết định cuối; nếu succeeded commit trước, hủy nhận 409. | FR-17 |
+| BR-07 | Hủy queued có hiệu lực ngay. Hủy running phải chờ xác nhận dừng; request provider đang bay có thể chưa dừng tức thời. Nếu cancel_requested commit trước, kể cả engine trả kết quả thành công sau đó, supervisor xác nhận process đã thoát rồi commit cancelled/steps/finished_at, dọn claim/lease và ghi một run.cancelled khi còn claim/lease hợp lệ; không công bố decision hoặc báo cáo cuối chưa publish. Nếu succeeded commit trước, hủy nhận 409. | FR-17 |
 | BR-08 | Chỉ failed/cancelled được thử lại; tạo run mới liên kết run cũ và dùng snapshot cũ nếu còn hỗ trợ. Không sửa trạng thái hoặc báo cáo lịch sử. Cấu hình cũ không khả dụng trả lỗi để tạo yêu cầu mới. | FR-18 |
 | BR-09 | Mock và live là hai chế độ tách biệt. Không ghép instrument mock với profile live hoặc ngược lại. Live chỉ dữ liệu nguồn thật, không bảo đảm dữ liệu tức thời. Kịch bản lỗi giả lập chỉ bật ở môi trường dev/test. | FR-05, FR-20, NFR-10 |
 | BR-10 | State, memory, artifact và checkpoint được cô lập theo run. MVP không chia sẻ bộ nhớ liên phiên. Các báo cáo hoàn thành vẫn được lưu và đọc khi run failed/cancelled. | FR-13, FR-21 |
@@ -215,9 +216,9 @@ Các đường API rút gọn trong bảng dùng prefix `/api/v1`. Chi tiết re
 | TC-08 | Kiểm tra năm rating và REVIEW; hoàn tất xử lý với needs_review không thành Hold; trường thiếu không bị bịa; decision/terminal nhất quán. | FR-14, NFR-04, NFR-10 |
 | TC-09 | Tìm q kết hợp filter/đọc cursor, kiểm tra ngày đến được bao gồm theo timezone, đổi filter bỏ cursor cũ; mở URL và restart giữ DB vẫn đọc được queued/history/report. | FR-15, FR-16, NFR-05 |
 | TC-10 | Giữ engine chạy lâu, đọc API khác, dừng worker, chờ hết lease rồi recovery; thử ghi từ claim cũ; deadline dừng process; lỗi công khai có mã tra cứu. | FR-09, FR-19, NFR-04, NFR-06, NFR-07 |
-| TC-11 | Hủy queued/running/lặp hủy, hủy tranh chấp hoàn tất, thử lại failed/cancelled, retry cấu hình cũ không còn hỗ trợ; giữ lịch sử và đúng mã lỗi. | FR-17, FR-18, NFR-04 |
+| TC-11 | Hủy queued/running/lặp hủy; dùng barrier ép cả hai thứ tự commit hủy/hoàn tất. Hủy thắng phải cancelled sau khi process thoát, không decision/run.succeeded, giữ report đã commit và dọn claim/lease. Thử lại failed/cancelled với double click, mất response/reload, request đồng thời cùng key, replay khi quota đã đầy/cấu hình vừa bị tắt; chỉ một run mới, mở đúng ID. Ý định mới gặp cấu hình cũ không hỗ trợ nhận 409. | FR-17, FR-18, NFR-04 |
 | TC-12 | Kiểm tra luồng ở 390/768/1440 px và bàn phím; mock badge, timezone và trạng thái; build/type/contract/migration/E2E trong môi trường sạch. | FR-20, NFR-08, NFR-09, NFR-10, NFR-11, NFR-12 |
-| TC-13 | Smoke test chủ động một instrument live; hai run cùng mã/ngày cô lập; stub lỗi/REVIEW map đúng; secret không xuất hiện ở UI/API/log công khai. | FR-21, NFR-03, NFR-10 |
+| TC-13 | Smoke test chủ động một instrument live; hai run cùng mã/ngày cô lập; stub lỗi/REVIEW map đúng; secret không xuất hiện ở UI/API/log công khai. Clock cố định quanh nửa đêm/DST với Asia/Ho_Chi_Minh và America/New_York trên máy khác timezone cho API/engine cùng giới hạn ngày và phân loại historical/live; không đổi ngày snapshot, CLI cũ không bị đổi hành vi. | FR-21, NFR-03, NFR-10 |
 | TC-14 | **Sau MVP1:** bảng điện poll theo lô, xử lý giá cũ/thiếu/lỗi/đóng cửa; chia sẻ cache, không chặn bởi engine. | FR-22, FR-24, NFR-13 |
 | TC-15 | **Sau MVP1:** thêm/bỏ mã, reload, đổi tài khoản; watchlist không trùng hoặc lẫn owner. | FR-23, NFR-01 |
 | TC-16 | **Sau MVP1:** phân tích từ mã, biểu đồ/ngày đúng; giá cập nhật không sửa kết luận cũ hoặc tự gọi mô hình. | FR-25, FR-26, BR-14, BR-15 |
@@ -228,8 +229,8 @@ Khi triển khai, ghi đường dẫn test, CI run hoặc biên bản demo vào 
 
 | Mốc | Nhóm yêu cầu chính | Điều kiện chốt mốc |
 |---|---|---|
-| 1. Chốt contract/wireframe | Rà soát FR/NFR/BR; schema và fixture | Nhóm xác nhận phạm vi, tiêu chí; design/contract không mâu thuẫn |
-| 2. Nền tảng | FR-01–FR-06, NFR-01–NFR-03 | Tài khoản, session, catalog và validation hoạt động |
+| 1. Chốt contract/wireframe | Rà soát FR/NFR/BR; schema và fixture | Nhóm xác nhận phạm vi, tiêu chí; design/contract không mâu thuẫn; có bảng ánh xạ stream/report/decision và khảo sát timezone lõi |
+| 2. Nền tảng | FR-01–FR-06, NFR-01–NFR-03; kiểm chứng contract engine | Tài khoản, session, catalog và validation hoạt động; thử nghiệm adapter bằng stub đọc một báo cáo/decision đúng schema, không gọi provider; chưa nghiệm thu FR-21 |
 | 3. Tạo/theo dõi | FR-07–FR-12, FR-20, NFR-04, NFR-07 | Luồng queued → running, progress và chống trùng đạt |
 | 4. Kết quả/gián đoạn | FR-13–FR-19, NFR-05–NFR-12 | Toàn bộ yêu cầu FE/BE đạt bằng mock; có demo local |
 | 5. Engine live | FR-21 và hồi quy các yêu cầu liên quan | Một luồng live đạt, FE/BE mock vẫn vượt kiểm thử |
@@ -241,7 +242,7 @@ Các NFR áp dụng xuyên suốt được kiểm tra từ lúc xây thành ph�
 
 | Mã | Điểm cần chốt | Thời điểm cần quyết định |
 |---|---|---|
-| OPEN-01 | Thành viên phụ trách, thời hạn và quy mô người dùng demo | Trước khi lập sprint |
+| OPEN-01 | Gán tên thành viên/reviewer và ngày giao vào bảng đầu việc có vai trò, dependency, ước lượng tại implementation-plan; chốt thời hạn và quy mô người dùng demo | Trước khi lập sprint |
 | OPEN-02 | Máy demo, tài nguyên tối thiểu và phương án public URL nếu cần | Trước nghiệm thu triển khai; không chặn phát triển local |
 | OPEN-03 | Ngưỡng response time, tải đồng thời và môi trường đo | Trước nghiệm thu hiệu năng; hiện chưa có SLA |
 | OPEN-04 | Provider/instrument live cho luồng phân tích; quyền truy cập và ngân sách LLM/data | Trước mốc 5; nguồn bảng giá VN chỉ chốt khi triển khai phần sau MVP1 |

@@ -6,7 +6,7 @@ Theo dõi phạm vi, ưu tiên, trạng thái triển khai và tiêu chí nghi�
 
 Làm một lát cắt xuyên suốt bằng mock engine trước: đăng nhập, tạo phiên, worker chạy, FE lấy tiến độ, lưu kết quả và mở lại lịch sử. Cách này kiểm chứng API, database và UX độc lập với độ ổn định hoặc chi phí của provider.
 
-Các mốc dưới đây đi theo đầu ra, chưa gán số tuần vì chưa có thông tin nhân lực và thời hạn. Nhóm có thể chia người làm FE và BE đồng thời sau khi chốt contract.
+Các mốc dưới đây đi theo đầu ra; bảng đầu việc ở mục 9 cung cấp vai trò phụ trách, dependency và ước lượng công sức ban đầu. Chưa gán ngày bắt đầu/kết thúc vì chưa có thông tin thành viên và thời hạn. Nhóm có thể làm FE bằng mock API song song với BE sau khi chốt contract.
 
 MVP1 FE/BE nghiệm thu tại mốc 4; mốc 5 tích hợp engine live theo cùng luồng phân tích. Bảng điện, watchlist, biểu đồ, collector và API giá chỉ thuộc [backlog sau MVP1](post-mvp-market-workspace.md), không chặn các mốc 1–5. Prototype hiện có phù hợp để bắt đầu MVP1.
 
@@ -18,6 +18,7 @@ MVP1 FE/BE nghiệm thu tại mốc 4; mốc 5 tích hợp engine live theo cùn
 |---|---|---|
 | Wireframe login/list/create/detail; các trạng thái lỗi/rỗng/loading | Pydantic schema công khai, enum, lỗi chuẩn, lifecycle | OpenAPI và fixture khớp nhau |
 | Chốt thuật ngữ và component trạng thái | Chốt instrument/profile catalog mock | Một bộ kịch bản có thể demo |
+| Đối chiếu report metadata và decision với màn hình | Khảo sát stream và helper ngày giờ của lõi bằng code/fixture | Bảng ánh xạ input, step, report, rating, timezone để thử bằng stub ở mốc 2 |
 
 Tiêu chí hoàn thành:
 
@@ -25,10 +26,11 @@ Tiêu chí hoàn thành:
 - Có fixture cho `queued`, `running`, `cancel_requested`, `succeeded`, `failed`, `cancelled` và kết luận `needs_review`.
 - Các ID trong fixture liên kết nhất quán; data mode được gắn nhãn.
 - Kiểu TypeScript được sinh từ OpenAPI khi backend schema đã có.
+- Có bảng ánh xạ ít nhất `market_report` sang report section `market`, `final_trade_decision` sang decision và `REVIEW` sang `needs_review`; ghi rõ helper đang phụ thuộc ngày máy và thay đổi cần làm ở mốc 5.
 
 ## 3. Mốc 2 — Nền tảng ứng dụng
 
-Frontend tạo app shell, router, HTTP client, QueryClient, login và protected route. Backend tạo FastAPI, database session, migration, user/session, seed account/catalog và exception handler.
+Frontend tạo app shell, router, HTTP client, QueryClient, login và protected route. Backend tạo FastAPI, database session, migration, user/session, seed account/catalog và exception handler. Thực hiện thử nghiệm adapter tối thiểu bằng stub từ bảng ánh xạ mốc 1 trước khi xây worker hoàn chỉnh.
 
 Tiêu chí hoàn thành:
 
@@ -36,6 +38,10 @@ Tiêu chí hoàn thành:
 - Tài khoản khác không đọc được dữ liệu của nhau.
 - Form tìm instrument và profile hoạt động với catalog mock.
 - Build FE và cài đặt BE chạy được từ môi trường sạch.
+- Stub phát các chunk theo hình dạng stream của lõi; thử nghiệm đọc được ít nhất một báo cáo và decision hợp lệ/REVIEW, tạo output đúng schema công khai và không phát revision trùng khi nội dung không đổi.
+- Fixture input giữ nguyên ngày nghiệp vụ, có timezone instrument và clock UTC thay được trong test. Ghi lại các chỗ lõi cần sửa để API/engine thống nhất khi qua ngày mới; không gọi LLM/vendor và chưa bật adapter live trong ứng dụng.
+
+Output của thử nghiệm là mã thử, fixture và kiểm thử ánh xạ tối thiểu để tái sử dụng ở mốc 5. Nếu phát hiện lệch schema, cập nhật contract/FE fixture ngay tại mốc 2; việc chưa có provider/key không chặn thử nghiệm. Đây chưa phải nghiệm thu FR-21.
 
 ## 4. Mốc 3 — Luồng tạo và theo dõi phiên
 
@@ -58,6 +64,8 @@ Tiêu chí hoàn thành:
 - Báo cáo hoàn thành từng phần đọc được khi phiên vẫn chạy.
 - Có thể phân biệt hoàn tất hợp lệ, cần xem xét, thất bại và hủy.
 - Hủy queued có hiệu lực ngay; hủy running hiển thị chờ xác nhận dừng.
+- Khi cancel_requested commit trước kết quả engine thành công, supervisor xác nhận process đã thoát rồi commit cancelled/steps/finished_at, dọn claim/lease và ghi một run.cancelled; không lưu decision hoặc báo cáo cuối chưa publish. Thứ tự ngược lại trả 409 khi hủy.
+- Bấm thử lại liên tiếp, mất response và reload cùng tab giữ key của cùng ý định; replay vẫn mở cùng ID mới dù quota đã đầy. Phiên nguồn giữ nguyên và không tạo nhiều run mới.
 - Worker chết làm phiên thất bại sau lease/recovery; thử lại tạo run mới.
 - Rating null không bị hiển thị thành Hold.
 - Lịch sử vẫn đọc được khi backend restart.
@@ -78,19 +86,21 @@ Tiêu chí hoàn thành:
 - Test thông thường dùng mock/stub; việc gọi provider thật thuộc smoke test chủ động.
 - Credential và payload nội bộ không xuất hiện trong API/log công khai.
 - Engine lỗi, quá hạn và output REVIEW được map đúng hợp đồng.
+- API, adapter và helper ngày hiện tại/historical của lõi dùng timezone instrument trong context từng run. Test clock cố định qua nửa đêm/DST và timezone máy khác nhau cho cùng kết quả; CLI không truyền context mới vẫn giữ hành vi cũ.
+- Profile live chỉ bật sau khi các công cụ của profile đã được kiểm tra ranh giới ngày nghiệp vụ và chuyển timestamp UTC đúng quy tắc.
 
 ## 7. Ma trận kiểm thử cần xây khi triển khai
 
 | Lớp | Ca kiểm thử có giá trị |
 |---|---|
 | Frontend component | Form báo lỗi đúng trường, label trạng thái/quality, report Markdown an toàn |
-| Frontend với mock API | Polling dừng terminal, mất session, mạng gián đoạn, gửi lại cùng key |
-| Backend domain | Chuyển trạng thái hợp lệ, hủy/hoàn tất tranh chấp, retry source terminal |
-| Backend tích hợp PostgreSQL | Idempotency đồng thời, quota đồng thời, claim nhiều worker, ghi sau mất lease bị chặn |
+| Frontend với mock API | Polling dừng terminal, mất session, mạng gián đoạn; double click retry/mất response/reload dùng cùng key và mở đúng run mới |
+| Backend domain | Chuyển trạng thái hợp lệ; kết quả thành công đến sau cancel_requested phải xác nhận dừng rồi cancelled, không có decision; retry source terminal |
+| Backend tích hợp PostgreSQL | Idempotency create/retry đồng thời, replay retry trước quota/capability, quota đồng thời, claim nhiều worker, ghi sau mất lease bị chặn; barrier cho cả hai thứ tự commit hủy/hoàn tất |
 | Backend quyền truy cập | Đọc run/report/event của người khác, CSRF và session hết hạn |
 | E2E | Login → tạo → tiến độ → kết quả → mở lại lịch sử |
 | Phục hồi | Tắt worker giữa phiên, restart backend, timeout process con, retry mới |
-| Adapter | Cô lập cùng ticker/ngày, mapping report/rating và lỗi engine |
+| Adapter | Thử nghiệm stream/report/rating bằng stub từ mốc 2; mốc 5 thêm cô lập cùng ticker/ngày, lỗi engine và clock cố định qua ranh giới ngày/DST/timezone máy |
 
 Các test về claim, khóa và transaction dùng PostgreSQL thật trong môi trường test, vì SQLite không có cùng hành vi SKIP LOCKED. Không gọi LLM thật trong CI mặc định.
 
@@ -108,14 +118,36 @@ Compose cho ứng dụng web sẽ có reverse proxy phục vụ FE static, API, 
 
 Trong runtime, migration chạy một lần ở bước release; API/worker không tự cạnh tranh chạy migration khi startup. API readiness chỉ thành công khi schema phù hợp.
 
-## 9. Những điểm cần chốt khi bước sang implementation
+## 9. Đầu việc, phụ trách và dependency
+
+Đơn vị ước lượng là **ngày công của một người**, gồm triển khai và kiểm thử liên quan; đây là khoảng dự kiến để lập sprint, chưa phải lịch cam kết. FE/BE là vai trò chịu trách nhiệm đầu ra; tên thành viên, reviewer và ngày giao phải được nhóm gán trước khi kéo việc vào sprint. Dependency là điều kiện hoàn tất/tích hợp; FE có thể làm sớm bằng fixture đã chốt.
+
+| ID | Mốc | Đầu việc / đầu ra | Phụ trách | Ngày công dự kiến | Dependency |
+|---|---|---|---|---|---|
+| M1-01 | 1 | Schema/OpenAPI, enum, lỗi, lifecycle và fixture contract | BE | 1–2 | Không |
+| M1-02 | 1 | Wireframe, trạng thái màn hình, FE fixture/types | FE | 1–2 | M1-01 |
+| M1-03 | 1 | Bảng ánh xạ stream/report/decision và khảo sát timezone lõi | BE, FE đối chiếu | 0.5–1 | M1-01 |
+| M2-01 | 2 | FastAPI, DB/migration, auth/CSRF, lệnh user và catalog | BE | 2–3 | M1-01 |
+| M2-02 | 2 | App shell/router, session, login và form catalog | FE | 2–3 | M1-02, M2-01 |
+| M2-03 | 2 | Thử nghiệm adapter bằng stub và kiểm thử ánh xạ schema | BE, FE kiểm tra fixture | 1–2 | M1-03 |
+| M3-01 | 3 | Tạo phiên/idempotency/quota, claim/heartbeat và mock engine | BE | 3–4 | M2-01, M2-03 |
+| M3-02 | 3 | Form tạo, polling snapshot và timeline | FE | 3–4 | M2-02, M3-01 |
+| M4-01 | 4 | Report/decision/history, executor hủy/deadline/recovery và retry | BE | 3–5 | M3-01 |
+| M4-02 | 4 | Reader/result/history và UX hủy/thử lại cùng key | FE | 3–4 | M3-02, M4-01 |
+| M4-03 | 4 | Compose web/local, CI, E2E và nghiệm thu TC-01–TC-12 | FE + BE | 2–3 | M4-01, M4-02 |
+| M5-01 | 5 | Adapter production, cô lập storage và sửa clock/timezone lõi | BE | 3–5 | M2-03, M4-03 |
+| M5-02 | 5 | Smoke live TC-13 và hồi quy mock/CLI | BE, FE xác nhận UI | 1–2 | M5-01, OPEN-04 |
+
+Người nhận việc cập nhật issue/PR, tên phụ trách, reviewer, ước lượng sau khảo sát và bằng chứng test cạnh ID tương ứng. Nếu thử nghiệm M2-03 phát hiện phải đổi contract, hoàn tất cập nhật trước M3-01/M3-02. M4-03 là điều kiện nghiệm thu MVP1; M5-02 là điều kiện nghiệm thu tích hợp live.
+
+### Các quyết định nhóm còn cần cung cấp
 
 - Người phụ trách FE/BE, thời hạn và quy mô demo.
 - Bộ UI component, nhận diện trực quan và mức hỗ trợ mobile.
 - Provider/market đầu tiên có dữ liệu thực tế đáp ứng, cùng quyền truy cập cần thiết.
 - Thời gian lưu dữ liệu, môi trường deploy và ngân sách chạy engine.
 
-Các quyết định này không chặn việc triển khai FE/BE với mock engine. Phạm vi ban đầu và contract được mô tả đủ để bắt đầu mốc 1.
+Tên thành viên và lịch giao được chốt trước khi lập sprint theo OPEN-01; các thông tin còn lại được chốt ở mốc tương ứng trong requirements. Chúng không chặn việc chuẩn bị schema, fixture hoặc phát triển local bằng mock engine.
 
 ## 10. Sau MVP1 — bảng điện Việt Nam
 

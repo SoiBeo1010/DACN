@@ -1,6 +1,6 @@
 # Rà soát tính thống nhất của tài liệu
 
-Ngày rà soát: 2026-11-04. Baseline yêu cầu sau rà soát: **0.4**.
+Ngày rà soát gần nhất: 2026-11-05. Baseline yêu cầu sau rà soát: **0.5**. Giữ kết quả đối chiếu và kiểm tra prototype của lần 2026-11-04 bên dưới.
 
 ## 1. Phạm vi và kết luận
 
@@ -42,7 +42,7 @@ Các lệch chi tiết phát hiện trong lần rà soát này đã được s�
 
 ## 4. Kiểm tra prototype
 
-Đã chạy JavaScript syntax check và browser smoke test trên Chrome:
+Kết quả lần rà soát 2026-11-04: đã chạy JavaScript syntax check và browser smoke test trên Chrome:
 
 - Hủy phiên đang chờ giữ đúng ID; không sinh báo cáo; mở lại từ lịch sử và thử lại đúng phiên nguồn.
 - Hủy phiên đang chạy giữ báo cáo từng phần; trạng thái cancel_requested có trong bộ lọc lịch sử.
@@ -52,6 +52,20 @@ Các lệch chi tiết phát hiện trong lần rà soát này đã được s�
 - Chụp lại 8 ảnh để khớp với prototype hiện tại.
 
 Prototype là fixture trình bày cục bộ, chưa mô phỏng backend/session/quota/lease hoặc polling thật. Các ca TC của ứng dụng vẫn cần được triển khai và chạy theo kế hoạch.
+
+### Rà soát bổ sung 2026-11-05
+
+| Điểm cần làm rõ | Quyết định sau rà soát | Tài liệu / nghiệm thu |
+|---|---|---|
+| Engine trả thành công sau khi hủy đã commit | Supervisor xác nhận process đã thoát; khi còn claim/lease thì commit cancelled/steps/finished_at, dọn claim/lease, ghi một run.cancelled; không lưu decision hoặc báo cáo cuối chưa publish | BE, API, data model, FR-17/BR-07/TC-11 và mốc 4 |
+| Idempotency cho nút thử lại | FE khóa nút, giữ key theo user/source trong sessionStorage của tab tới khi biết kết quả; gửi lại/reload dùng cùng key, 202 mở ID mới. BE replay trước quota/capability | FE, API, FR-18/BR-03/TC-11 và mốc 4 |
+| Timezone ứng dụng và lõi khác nhau | Ngày theo timezone instrument; clock UTC có thể thay trong test, context business_timezone theo run; sửa helper lõi khi tích hợp, giữ hành vi CLI khi không có context | Kiến trúc, BE/API, NFR-10/TC-13 và mốc 5 |
+| Dồn rủi ro ánh xạ engine tới cuối | Mốc 1 khảo sát/bảng ánh xạ; mốc 2 thử nghiệm stream/report/decision bằng stub, không cần provider và chưa bật live | M1-03, M2-03; FR-21 vẫn nghiệm thu tại mốc 5 |
+| Kế hoạch chưa chia thành đầu việc giao được | Thêm ID đầu việc, vai trò chịu trách nhiệm, khoảng ngày công và dependency; nhóm gán tên/reviewer/ngày giao trước khi lập sprint | Implementation plan mục 9, OPEN-01 |
+
+Các mục trên là thay đổi đặc tả/thiết kế; code FE/BE, thử nghiệm adapter và các ca TC bổ sung chưa được triển khai hoặc đánh dấu Đạt. Prototype/ảnh không thay đổi trong lần bổ sung này.
+
+Kiểm tra tĩnh lần bổ sung: 11 file Markdown đọc đúng UTF-8, 73 liên kết nội bộ/anchor hợp lệ, 10 ví dụ JSON parse được; các ID FR/NFR/BR/TC giữ nguyên; 13 đầu việc có dependency hợp lệ, không có chu trình. `git diff --check` đạt. Không chạy kiểm thử runtime FE/BE hoặc chạy lại browser smoke test trong lần chỉnh tài liệu này.
 
 ## 5. Điểm còn mở
 

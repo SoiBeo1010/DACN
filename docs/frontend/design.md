@@ -127,6 +127,15 @@ Hiển thị snapshot của input, trạng thái, bước hiện tại, thời g
 
 Nhãn trạng thái thực thi và nhãn kết luận là hai component riêng.
 
+### Hủy và thử lại
+
+- Nút hủy dựa trên capability của snapshot. Khi nhận `202 cancel_requested`, hiển thị đang chờ dừng và tiếp tục polling tới terminal; kết quả engine vừa trả về không làm UI tự coi là thành công. Khi nhận `409 INVALID_STATE`, refetch snapshot để hiển thị trạng thái đã commit.
+- Một ý định thử lại gắn với user hiện tại và ID run nguồn. Tạo một `Idempotency-Key` trước request đầu tiên, khóa nút khi đang gửi và dùng chung bộ điều khiển mutation cho các nút thử lại của cùng run trên trang.
+- Lưu `{user_id, source_run_id, key, first_sent_at}` của ý định chưa xác định kết quả trong `sessionStorage` của tab; khôi phục khi reload và chỉ dùng lại sau khi xác nhận đúng session user. Không lưu session token, CSRF token hoặc mật khẩu. Đăng xuất/đổi tài khoản xóa các ý định đang giữ.
+- Mất response, lỗi mạng hoặc 5xx: giữ key, cho người dùng gửi lại `POST /analyses/{source_run_id}/retry` không body bằng chính key đó. Không tự sinh key mới. Nếu ý định chưa rõ kết quả đã qua 24 giờ từ lần gửi đầu, dừng gửi lại và hướng người dùng kiểm tra lịch sử trước khi chủ động xác nhận một ý định mới.
+- Nhận `202`: dùng ID/Location đã trả để chuyển tới phiên mới, xóa ý định đang giữ và invalidate lịch sử cùng snapshot nguồn; không đổi ID hay trạng thái của phiên nguồn. Chỉ một thao tác thử lại mới được người dùng chủ động bắt đầu sau khi đã biết kết quả lần trước mới sinh key mới.
+- `429` giữ key và ngữ cảnh; `409 RETRY_UNAVAILABLE` hướng tới form tạo mới với profile hiện tại. Xử lý `401/404` theo quy tắc session/resource chung; không lặp mutation vô hạn.
+
 ### Báo cáo
 
 Danh sách các phần đã có; chỉ fetch nội dung đầy đủ khi mở phần. Render Markdown bằng cấu hình tắt raw HTML, loại bỏ URL nguy hiểm và mở liên kết ngoài với thuộc tính an toàn. Nội dung từ mô hình được xem là dữ liệu không tin cậy.
@@ -161,7 +170,7 @@ Query key phải bao gồm resource ID và tham số lọc, ví dụ `['analysis
 5. Giữ last_read_event_seq riêng với event_cursor của snapshot. Mở Tiến trình lần đầu đọc after=0; sau đó dùng next_cursor cuối đã tải, dedupe theo (run_id, seq) và đọc tiếp tới khi has_more=false. Khi phiên vừa terminal vẫn đọc hết các sự kiện còn thiếu trước khi dừng; không nhảy thẳng tới event_cursor mới của server.
 6. `404` dừng tải và hiển thị trang không tìm thấy; `401` kết thúc session phía UI.
 
-GET có thể retry tối đa hai lần với backoff khi lỗi mạng/5xx. Mutation tạo phiên không được retry tự động bằng một khóa mới. Sau hủy hoặc thử lại, invalidate snapshot và lịch sử liên quan.
+GET có thể retry tối đa hai lần với backoff khi lỗi mạng/5xx. Mutation tạo phiên và thử lại không tự retry; khi người dùng gửi lại cùng ý định phải giữ nguyên `Idempotency-Key`. Sau hủy hoặc thử lại, invalidate snapshot và lịch sử liên quan.
 
 HTTP client dùng `credentials: include`, gửi `X-CSRF-Token` cho mutation đã xác thực, chuẩn hóa lỗi và giữ `request_id` để hỗ trợ điều tra. Mỗi query có thể hủy request khi không còn cần.
 
@@ -178,6 +187,7 @@ HTTP client dùng `credentials: include`, gửi `X-CSRF-Token` cho mutation đã
 - Có thể hoàn thành luồng chính với mock API mà không cần LLM hay tài khoản vendor.
 - Reload và mở trực tiếp trang chi tiết không tạo thêm phiên.
 - Nhấn submit nhiều lần hoặc gửi lại sau lỗi mạng chỉ tạo một phiên cho một ý định.
+- Bấm thử lại liên tiếp, mất response hoặc reload trong cùng tab vẫn dùng key của ý định đang chờ và chỉ tạo một run mới; nhận `202` mở đúng run mới, phiên nguồn giữ nguyên.
 - Hoàn tất, thất bại, cần xem xét và bị hủy đều có giao diện riêng.
 - Đăng xuất xóa dữ liệu tài khoản trước khỏi cache.
 - Polling dừng đúng lúc; lỗi mạng không làm mất báo cáo đã tải.

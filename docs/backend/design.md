@@ -120,11 +120,21 @@ Executor chạy engine trong process con có giám sát để supervisor có th�
 - Kết thúc và hủy tranh chấp: khóa hàng run. Nếu yêu cầu hủy đã được commit trước, không publish quyết định cuối; nếu thành công đã commit, API hủy trả `409`.
 - Khi quá thời gian: chấm dứt process con, chuyển `failed` với `RUN_TIMEOUT` nếu vẫn giữ claim. Shutdown supervisor phải dọn process con; không chỉ đóng vòng polling.
 
+Nếu supervisor nhận `EngineResult` thành công trong khi run đã là `cancel_requested`, xử lý theo nhánh xác nhận hủy:
+
+1. Giám sát process con tới khi thoát rồi thu hồi bằng `join`; mỗi lần chờ có timeout ngắn để không chặn vòng supervisor. Khi process còn sống, giữ `cancel_requested`, tiếp tục heartbeat và giám sát deadline.
+2. Mở transaction, khóa hàng run và kiểm tra lại claim token, lease, trạng thái. Nếu đã mất claim hoặc run đã terminal, bỏ kết quả và không ghi sự kiện trùng.
+3. Nếu vẫn là `cancel_requested`, bỏ decision và các báo cáo cuối chưa publish trong `EngineResult`; giữ nguyên các báo cáo đã commit trước đó.
+4. Chuyển bước đang chạy thành `skipped` với `reason_code = CANCELLED`, các bước chưa bắt đầu thành `skipped`; giữ bước đã hoàn thành. Đặt `status = cancelled`, `finished_at` theo đồng hồ DB, `current_step_key = null`, xóa claim/lease, tăng version/seq và ghi đúng một `run.cancelled` trong cùng transaction.
+
+Việc nhận kết quả thành công từ process con không cho phép chuyển `cancel_requested` thành `succeeded`. Test dùng barrier để ép cả hai thứ tự commit hủy/hoàn tất; nhánh hủy thắng phải kết thúc mà không chờ lease hết hạn, không có decision hoặc `run.succeeded`.
+
 ## 6. Interface với engine
 
 ```text
 AnalysisInput
   run_id, instrument_snapshot, as_of_date
+  instrument_snapshot.timezone  # Timezone IANA bắt buộc
   profile_snapshot, language, execution_config
 
 AnalysisEngine
@@ -145,7 +155,7 @@ Mock engine hỗ trợ các kịch bản: thành công, cần xem xét, thất b
 
 ## 7. Tích hợp TradingAgents — mốc 5 sau MVP1 FE/BE
 
-MVP1 dùng MockEngine. Các thao tác đặc thù TradingAgents trong mục này chỉ bắt buộc ở mốc 5; key LLM, checkpoint hoặc nguồn dữ liệu live không phải điều kiện chạy/nghiệm thu MVP1 mock.
+MVP1 dùng MockEngine. Adapter production và nguồn dữ liệu live chỉ bắt buộc ở mốc 5; key LLM, checkpoint hoặc nguồn live không phải điều kiện chạy/nghiệm thu MVP1 mock. Thử nghiệm adapter bằng stub ở mốc 1–2 kiểm tra trước hình dạng stream, ánh xạ báo cáo/kết luận và context ngày giờ, không gọi provider.
 
 | Điểm trong code | Cách dùng dự kiến |
 |---|---|
@@ -155,11 +165,21 @@ MVP1 dùng MockEngine. Các thao tác đặc thù TradingAgents trong mục này
 | `record_decision()` và `save_reports()` | Lưu kết quả theo không gian riêng của phiên |
 | `rating.parse_rating()` | Map giá trị khuyến nghị; `REVIEW` thành `quality = needs_review`, `rating = null` |
 
-Adapter dùng thư mục `runs/{run_id}/` cho `results_dir`, `data_cache_dir` và `memory_log_path`; checkpoint theo ticker bên trong thư mục này vẫn được cô lập theo run. Bộ nhớ liên phiên chưa được chia sẻ trong MVP.
+Adapter dùng `runs/{run_id}/results/` cho `results_dir`, `runs/{run_id}/cache/` cho `data_cache_dir` và file `runs/{run_id}/memory/trading_memory.md` cho `memory_log_path`; checkpoint theo ticker bên trong thư mục này vẫn được cô lập theo run. Retry resolve các đường dẫn theo ID mới, không tái sử dụng đường dẫn của run nguồn. Bộ nhớ liên phiên chưa được chia sẻ trong MVP.
 
 Không copy cơ chế monkey-patch hiển thị terminal của `cli/run.py`. Adapter chuyển stream/callback thành sự kiện nghiệp vụ và chịu trách nhiệm hoàn tất các bước ghi log mà luồng streaming cần. Mọi helper có side effect phải được kiểm chứng khi viết adapter.
 
 Output hiện tại chủ yếu là Markdown. Adapter chỉ cung cấp các trường đã xác định được; không tự bịa giá, xác suất hoặc nguồn dẫn. Việc lưu object structured đầy đủ có thể được bổ sung khi hợp đồng engine được mở rộng.
+
+### Ngày nghiệp vụ giữa API và engine
+
+- `as_of_date` giữ nguyên ngày `YYYY-MM-DD` theo timezone IANA trong instrument snapshot; không đổi ngày này thành ngày UTC. API tính giới hạn ngày catalog và kiểm tra input bằng clock UTC có thể thay trong test, rồi chuyển sang timezone instrument để lấy ngày hiện tại.
+- Khi thực thi, adapter truyền timezone snapshot thành cấu hình nội bộ `business_timezone` trong scope `run_config`. Mốc 5 bổ sung hỗ trợ này cho helper ngày hiện tại của lõi, validation và các phép phân loại historical/live, bao gồm `withhold_live_profile` và `_memory_as_of`; các đường chạy web dùng cùng quy tắc với API. Không thay biến môi trường `TZ` hoặc timezone toàn process.
+- `get_current_date()` hiện dùng `date.today()` của máy; đây là khoảng trống cần sửa khi triển khai adapter, chưa phải capability đã có. Caller CLI không truyền `business_timezone` tiếp tục dùng hành vi hiện tại. Adapter streaming trực tiếp vẫn phải áp dụng kiểm tra ngày tương đương, vì không đi qua validation của `propagate()`.
+- Clock được đọc nhất quán trong từng thao tác. Khi qua ngày mới, tính lại giới hạn hiện tại nhưng không sửa `as_of_date` đã snapshot. Timestamp vận hành vẫn lưu UTC; bộ lọc lịch sử dùng timezone hiển thị của user, độc lập với ngày nghiệp vụ instrument.
+- Các công cụ lọc dữ liệu theo ngày phải dùng ranh giới ngày của instrument rồi đổi thành khoảng UTC khi so timestamp; không mặc định mọi ngày nghiệp vụ bắt đầu lúc 00:00 UTC. Mốc 5 kiểm tra các công cụ được profile live sử dụng trước khi bật profile đó.
+
+Kiểm thử dùng cùng một instant UTC với instrument ở `Asia/Ho_Chi_Minh` và `America/New_York`, chạy dưới timezone máy khác nhau. Bao phủ trước/sau nửa đêm nghiệp vụ, ngày có DST, validation ngày tương lai và phân loại historical/live; API và engine phải thống nhất dù máy chủ ở UTC. Khảo sát helper và fixture được làm ở mốc 1–2; sửa lõi và nghiệm thu tích hợp thuộc mốc 5.
 
 ## 8. Báo cáo và tính nhất quán
 

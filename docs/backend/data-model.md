@@ -180,11 +180,13 @@ Invariant “run succeeded phải có decision” được đảm bảo bằng t
 | Thao tác | Nội dung nguyên tử |
 |---|---|
 | Tạo phiên | Khóa user, kiểm tra idempotency/hạn mức, insert run/steps/event/key |
+| Thử lại | Kiểm tra owner nguồn, khóa user, replay key trước capability/quota; nếu chưa có key thì tạo run/steps/event/key từ snapshot nguồn, resolve storage theo ID mới |
 | Claim | Khóa run queued bằng SKIP LOCKED, gán claim và lease, ghi started |
 | Progress | Khóa run, kiểm tra claim/lease/state, cập nhật step/report và report revision nếu thay đổi, tăng version/seq, append event |
 | Heartbeat | UPDATE có điều kiện theo claim/lease/state; không tăng version |
 | Hủy | Khóa run, đổi trạng thái, tăng version/seq, append event |
 | Hoàn tất | Kiểm tra claim và hủy, lưu báo cáo cuối/decision, đổi terminal, xóa lease/claim, append event |
+| Xác nhận hủy sau kết quả engine | Sau khi process con đã thoát: khóa run, kiểm tra claim/lease/cancel_requested, bỏ kết quả cuối chưa publish, giữ report đã commit, cập nhật steps/finished_at/current_step_key, xóa claim/lease, tăng version/seq và append một run.cancelled; không insert decision |
 | Recovery | Khóa run lease hết hạn, đánh dấu failed, dọn claim/lease, cập nhật steps và event |
 
 Không mở transaction trong suốt thời gian chạy engine. Nếu UPDATE có điều kiện không còn khớp, worker mất quyền ghi và phải dừng. Server đọc snapshot chi tiết bằng read-only REPEATABLE READ hoặc một truy vấn tương đương để giữ dữ liệu nhất quán.

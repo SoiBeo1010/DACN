@@ -2,7 +2,7 @@
 
 Đối chiếu hành vi API với các mã yêu cầu FR/NFR/BR tại [requirements.md](../requirements.md). Các thay đổi hành vi phải được cập nhật cùng đặc tả và kịch bản nghiệm thu liên quan.
 
-Hợp đồng dưới đây dành cho MVP1 theo luồng phân tích. API quote/OHLCV/watchlist chỉ là [đề xuất sau MVP1](../planning/post-mvp-market-workspace.md), chưa cần triển khai hoặc sinh vào OpenAPI của MVP1.
+Hợp đồng dưới đây dành cho MVP1 theo luồng phân tích, bắt buộc hỗ trợ TradingAgents adapter và dữ liệu thật với `data_mode = live`. API quote/OHLCV/watchlist phục vụ bảng điện được [triển khai sau MVP1](../planning/post-mvp-market-workspace.md), chưa cần sinh vào OpenAPI của MVP1.
 
 ## 1. Quy ước chung
 
@@ -16,7 +16,7 @@ Hợp đồng dưới đây dành cho MVP1 theo luồng phân tích. API quote/O
 - API không nhận `owner_id`, đường dẫn lưu trữ, secret hoặc provider URL từ người dùng.
 - Mã hiển thị không phải định danh duy nhất: dùng `instrument_id` khi tạo phân tích.
 
-Tài liệu này là hợp đồng thiết kế. Khi hiện thực hóa, Pydantic schema tạo OpenAPI; frontend sinh TypeScript từ OpenAPI và CI kiểm tra sai lệch. Trong giai đoạn mock, fixture phải tuân thủ các schema dưới đây.
+Tài liệu này là hợp đồng thiết kế. Khi hiện thực hóa, Pydantic schema tạo OpenAPI; frontend sinh TypeScript từ OpenAPI và CI kiểm tra sai lệch. Các JSON có `DEMO` / `data_mode = mock` dưới đây là fixture cho phát triển và CI, không phải dữ liệu nghiệm thu MVP1. Phiên live dùng cùng schema/endpoint, instrument/profile đã xác nhận hỗ trợ và `data_mode = live`; TC-13 phải kiểm chứng toàn luồng với lõi/provider thật.
 
 ## 2. Danh mục endpoint
 
@@ -80,7 +80,7 @@ Không trả session token trong JSON. Login kiểm tra Origin/Referer cùng ori
 }
 ```
 
-`DEMO` là fixture không đại diện một chứng khoán thật. Catalog live chỉ liệt kê các instrument đã được adapter xác nhận hỗ trợ; giới hạn ngày phụ thuộc nguồn dữ liệu. `live` chỉ nguồn thực, không cam kết dữ liệu tức thời. Backend không chấp nhận kết hợp instrument mock với profile live hoặc ngược lại.
+`DEMO` là fixture không đại diện một chứng khoán thật. Catalog live chỉ liệt kê các instrument đã được adapter xác nhận hỗ trợ; giới hạn ngày phụ thuộc nguồn dữ liệu. `live` chỉ nguồn thực, không cam kết dữ liệu tức thời. Backend không chấp nhận kết hợp instrument mock với profile live hoặc ngược lại; lỗi nguồn live không tự chuyển sang mock.
 
 `GET /analysis-profiles` trả:
 
@@ -102,7 +102,7 @@ Không trả session token trong JSON. Login kiểm tra Origin/Referer cùng ori
 
 Provider/model, prompt, timeout và khóa truy cập không nằm trong profile công khai. Backend snapshot phiên bản cấu hình thực thi khi tạo run.
 
-Trong MVP1, catalog/profile được seed với `data_mode = mock`; profile live chỉ được bật ở mốc 5. `/instruments` tìm theo mã/tên bằng q, sắp `(symbol, id)` ổn định, dùng cursor opaque, limit mặc định 20/tối đa 100. `available = false` hoặc tổ hợp không hỗ trợ không được tạo phiên. Backend kiểm tra lại capability, ngôn ngữ và giới hạn ngày dù FE đã kiểm tra.
+Trong mốc 1–4 của MVP1 có thể dùng catalog/profile mock cho phát triển và kiểm thử. Trước nghiệm thu MVP1 tại mốc 5, catalog phải có ít nhất một instrument thật và profile live khả dụng đã chạy được qua adapter; fixture mock không thay thế yêu cầu này. Tổ hợp live có `data_mode = live` trên catalog/profile, response tạo phiên, snapshot và lịch sử; backend resolve engine từ cấu hình, client không tự gửi `data_mode` trong body tạo phiên. `/instruments` tìm theo mã/tên bằng q, sắp `(symbol, id)` ổn định, dùng cursor opaque, limit mặc định 20/tối đa 100. `available = false` hoặc tổ hợp không hỗ trợ không được tạo phiên. Backend kiểm tra lại capability, ngôn ngữ và giới hạn ngày dù FE đã kiểm tra.
 
 ## 5. Tạo phiên
 

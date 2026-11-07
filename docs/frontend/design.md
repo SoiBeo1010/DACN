@@ -4,7 +4,9 @@ Yêu cầu chức năng và phi chức năng được quản lý tại [requirem
 
 Xem [planning giao diện](ui-planning.md) để tham khảo ảnh các màn hình và [prototype tương tác](prototype.html). Các bản phác thảo giúp chốt bố cục trước khi triển khai React.
 
-**MVP1:** đăng nhập → `/analyses` → tạo phiên → theo dõi → báo cáo/lịch sử. Bảng điện, watchlist và trang chi tiết giá được giữ tại [backlog sau MVP1](../planning/post-mvp-market-workspace.md), chưa thêm vào route hoặc module bắt buộc của FE.
+**MVP1:** đăng nhập → `/analyses` → tạo phiên → theo dõi → báo cáo/lịch sử; luồng này phải hoạt động với lõi TradingAgents và dữ liệu thật qua API trước nghiệm thu mốc 5. Bảng điện theo dõi giá, watchlist và trang chi tiết giá được triển khai ở [giai đoạn sau MVP1](../planning/post-mvp-market-workspace.md), chưa thêm vào route hoặc module bắt buộc của FE.
+
+Wireframe bên dưới và prototype dùng `DEMO` / nhãn giả lập để tham khảo bố cục. Frontend triển khai thật đọc catalog, `data_mode`, tiến độ và kết quả từ API; không giữ fixture trong luồng live.
 
 ## 1. Vai trò và cấu trúc
 
@@ -114,7 +116,7 @@ Sau `202`, chuyển ngay tới `/analyses/{id}`. Khi nhận lỗi validation, đ
 
 ### Tổng quan
 
-Hiển thị snapshot của input, trạng thái, bước hiện tại, thời gian và kết luận khi có. Nhãn `mock/live` luôn nhìn thấy. Khi kết luận cần xem xét, dùng thông báo riêng cùng nguyên nhân; không gán nó thành `Hold`.
+Hiển thị snapshot của input, trạng thái, bước hiện tại, thời gian và kết luận khi có. Nhãn chế độ dữ liệu lấy từ `data_mode` luôn nhìn thấy: `mock` là “Dữ liệu giả lập”, `live` là “Dữ liệu nguồn thực”; nguồn thực không đồng nghĩa giá realtime. Khi kết luận cần xem xét, dùng thông báo riêng cùng nguyên nhân; không gán nó thành `Hold`.
 
 | Giá trị từ API | Nhãn gợi ý |
 |---|---|
@@ -184,7 +186,8 @@ HTTP client dùng `credentials: include`, gửi `X-CSRF-Token` cho mutation đã
 
 ## 9. Tiêu chí nghiệm thu frontend
 
-- Có thể hoàn thành luồng chính với mock API mà không cần LLM hay tài khoản vendor.
+- Kiểm thử phát triển/CI hoàn thành luồng chính với mock API mà không cần LLM hay tài khoản vendor.
+- Nghiệm thu MVP1 bắt buộc chạy TC-13 qua API/backend thật: chọn instrument/profile live, tạo phiên, xem tiến độ và báo cáo/kết luận từ lõi TradingAgents với provider thật, rồi mở lại từ lịch sử sau reload/restart.
 - Reload và mở trực tiếp trang chi tiết không tạo thêm phiên.
 - Nhấn submit nhiều lần hoặc gửi lại sau lỗi mạng chỉ tạo một phiên cho một ý định.
 - Bấm thử lại liên tiếp, mất response hoặc reload trong cùng tab vẫn dùng key của ý định đang chờ và chỉ tạo một run mới; nhận `202` mở đúng run mới, phiên nguồn giữ nguyên.
@@ -192,4 +195,4 @@ HTTP client dùng `credentials: include`, gửi `X-CSRF-Token` cho mutation đã
 - Đăng xuất xóa dữ liệu tài khoản trước khỏi cache.
 - Polling dừng đúng lúc; lỗi mạng không làm mất báo cáo đã tải.
 - Timeline không bỏ sót sự kiện khi mở muộn; phần báo cáo đang đọc được cập nhật khi revision tăng.
-- Nhãn giả lập xuất hiện trên danh sách, chi tiết và báo cáo của phiên mock.
+- Nhãn chế độ dữ liệu đúng trên danh sách, chi tiết và báo cáo của cả phiên mock/live; kết quả live và lỗi provider không được thay bằng fixture.

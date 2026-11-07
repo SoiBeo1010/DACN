@@ -1,6 +1,6 @@
 # Planning giao diện frontend
 
-Các màn hình và prototype trong tài liệu này là tham khảo cho MVP1 quản lý phiên phân tích. [Bảng điện và watchlist](../planning/post-mvp-market-workspace.md) thuộc giai đoạn sau, chưa cần đưa vào bản triển khai đầu tiên.
+Các màn hình và prototype trong tài liệu này là tham khảo bố cục cho MVP1 quản lý phiên phân tích. Ứng dụng MVP1 phải kết nối lõi TradingAgents qua backend để lấy dữ liệu thật, hiển thị tiến độ và báo cáo/kết luận; prototype giả lập không phải bằng chứng nghiệm thu. [Bảng điện theo dõi giá và watchlist](../planning/post-mvp-market-workspace.md) được triển khai ở giai đoạn tiếp theo sau nghiệm thu MVP1.
 
 ## 1. Cách xem bản phác thảo
 
@@ -11,6 +11,8 @@ Thanh **UI Planning** ở đầu trang dùng để chọn màn hình và trạng
 Phạm vi: sáu màn hình chính, phiên bản mobile của màn hình theo dõi và các trạng thái phụ. Dữ liệu, mã đối tượng, tài khoản và nhận định đều là giả lập; ngày minh họa cố định ở 04/11/2026. Prototype không gửi request, xác thực thật hoặc lưu mật khẩu. Tương tác trong phiên xem không tồn tại sau khi tải lại trang.
 
 Prototype dùng ID ngắn và fixture trình bày riêng, không phải mock API tuân thủ OpenAPI. UUID/schema, session, idempotency, quota, polling và lease được kiểm chứng ở ứng dụng thực hiện theo contract; không suy ra chúng đã đạt từ việc bấm thử HTML. Thanh chọn màn hình/trạng thái chỉ đổi kịch bản xem, không khởi chạy engine.
+
+Khi xây React, nhãn chế độ dữ liệu và nội dung phải lấy từ API: `mock` hiển thị “Dữ liệu giả lập”, `live` hiển thị “Dữ liệu nguồn thực”. Các ảnh hiện tại vẫn minh họa fixture; TC-13 ở mốc 5 trong MVP1 phải có bằng chứng ứng dụng chạy với lõi/provider thật và mở lại kết quả từ lịch sử.
 
 ## 2. Hướng hình ảnh
 
@@ -194,7 +196,7 @@ Prototype minh họa các trạng thái bằng fixture cục bộ. Việc đồn
 | Component | Dùng tại |
 |---|---|
 | `AppShell`, `SideNavigation`, `PageHeader` | Toàn bộ trang sau đăng nhập |
-| `MockDataBadge`, `RunStatusBadge`, `DecisionQualityBadge` | Danh sách, chi tiết, báo cáo |
+| `DataModeBadge`, `RunStatusBadge`, `DecisionQualityBadge` | Danh sách, chi tiết, báo cáo; nhãn mock/live theo API |
 | `AnalysisFilters`, `AnalysisTable`, `AnalysisCard` | Lịch sử desktop/mobile |
 | `InstrumentPicker`, `AnalysisForm`, `RequestSummary` | Tạo phiên |
 | `RunProgress`, `ActivityTimeline`, `CancelRunDialog` | Theo dõi |

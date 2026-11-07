@@ -4,6 +4,8 @@ Các yêu cầu và quy tắc nghiệp vụ cần được dữ liệu bảo đ�
 
 ERD và bảng dưới đây thuộc MVP1. Các bảng watchlist/quote/OHLCV và trường quote_context được lưu tại [backlog sau MVP1](../planning/post-mvp-market-workspace.md); chưa cần migration cho chúng trong MVP1.
 
+MVP1 phải lưu được instrument/profile live, input/config snapshot, tiến độ, báo cáo và kết luận từ lõi TradingAgents với dữ liệu thật. Catalog mock phục vụ phát triển/CI; trước nghiệm thu mốc 5 phải có ít nhất một instrument/profile live đã xác nhận hỗ trợ. Việc chưa có bảng quote/OHLCV phục vụ bảng điện không ngăn lõi lấy dữ liệu phân tích từ nguồn thật qua công cụ của engine.
+
 ## 1. Nguyên tắc
 
 PostgreSQL lưu dữ liệu ứng dụng. SQLAlchemy model và Alembic migration được xây từ mô hình dưới đây. UUID là khóa công khai; timestamp dùng `timestamptz` và UTC. Ngày nghiệp vụ dùng `date`.

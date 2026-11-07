@@ -2,7 +2,7 @@
 
 Các yêu cầu, phạm vi và tiêu chí nghiệm thu được quản lý tập trung tại [requirements.md](requirements.md). Tài liệu này mô tả phương án kiến trúc đáp ứng các yêu cầu đó.
 
-**Phạm vi MVP1:** quản lý phiên phân tích theo luồng ban đầu. Bảng điện, watchlist, biểu đồ và collector giá chỉ thuộc [backlog sau MVP1](planning/post-mvp-market-workspace.md); không có trong sơ đồ triển khai bắt buộc dưới đây.
+**Phạm vi MVP1:** quản lý phiên phân tích và tích hợp lõi TradingAgents qua adapter để lấy dữ liệu thật, trả báo cáo/kết luận thực tế. Bảng điện theo dõi giá, watchlist, biểu đồ và collector giá được triển khai ở giai đoạn tiếp theo trong [kế hoạch sau MVP1](planning/post-mvp-market-workspace.md); không có trong sơ đồ triển khai bắt buộc dưới đây.
 
 ## 1. Bài toán và phạm vi
 
@@ -45,16 +45,16 @@ flowchart TD
     API <-->|"Session, phiên, báo cáo"| DB[("PostgreSQL")]
     Worker["Worker — lấy và chạy phiên"] <-->|"Claim, heartbeat, kết quả"| DB
     Worker --> Port["AnalysisEngine interface"]
-    Port -->|"MVP1"| Mock["Mock engine"]
-    Port -->|"Mốc 5, sau MVP1 FE/BE"| Adapter["TradingAgents adapter"]
+    Port -->|"MVP1 — dữ liệu thật"| Adapter["TradingAgents adapter"]
     Adapter --> Core["Lõi TradingAgents"]
     Core <-->|"Yêu cầu dữ liệu và mô hình"| External["Provider bên ngoài"]
+    Port -.->|"Phát triển / kiểm thử / CI"| Mock["Mock engine"]
     Worker --> Storage["Volume riêng theo run_id"]
 ```
 
 API và worker dùng chung backend codebase và các quy tắc nghiệp vụ, được chạy bằng hai entrypoint khác nhau. API tiếp nhận và đọc dữ liệu; worker thực thi tác vụ dài. Worker không cần một HTTP server riêng.
 
-MVP1 chỉ chọn MockEngine. Nhánh TradingAgents/provider bên ngoài là phần tích hợp ở mốc 5, không phải điều kiện chạy luồng mock hoặc nghiệm thu MVP1.
+MVP1 bắt buộc có nhánh TradingAgents/provider thật. MockEngine là nhánh hỗ trợ phát triển và kiểm thử tự động theo cùng `AnalysisEngine` interface. Mốc 4 hoàn thiện kiểm thử ứng dụng bằng mock; mốc 5 hoàn thành tích hợp lõi và là điều kiện nghiệm thu MVP1. Ít nhất một instrument/profile live phải chạy từ FE qua API/Worker đến lõi, lưu báo cáo/kết luận và đọc lại được từ lịch sử. Thiếu nguồn dữ liệu hoặc quyền truy cập provider thật thì chưa đủ điều kiện nghiệm thu MVP1.
 
 Trong môi trường local, có thể dùng Vite dev proxy cho `/api`; môi trường triển khai dùng reverse proxy và HTTPS. PostgreSQL và volume kết quả chỉ được truy cập từ các dịch vụ nội bộ.
 
@@ -82,7 +82,7 @@ sequenceDiagram
     participant API as API
     participant DB as PostgreSQL
     participant W as Worker
-    participant E as Engine
+    participant E as TradingAgents qua adapter
 
     UI->>API: POST /analyses + Idempotency-Key
     API->>DB: Transaction: phiên queued + bước + sự kiện + khóa chống trùng
@@ -114,6 +114,7 @@ Một request tạo phiên thành công chỉ có nghĩa là yêu cầu đã đ�
 - Trạng thái thực thi tách khỏi chất lượng kết luận. `succeeded` có thể đi cùng `decision.quality = needs_review`.
 - Giới hạn thời gian, số phiên đang hoạt động và kích thước báo cáo được cấu hình phía server.
 - Mọi kết quả giả lập mang nhãn `mock` trên API và giao diện.
+- Luồng nghiệm thu MVP1 dùng `data_mode = live`; lỗi provider được công bố theo hợp đồng, không tự chuyển sang kết quả mock. `live` chỉ dữ liệu từ nguồn thật, không cam kết giá tức thời.
 
 ## 7. Thông số khởi đầu để kiểm thử
 
@@ -129,7 +130,7 @@ Một request tạo phiên thành công chỉ có nghĩa là yêu cầu đã đ�
 
 Lease đo bằng thời gian PostgreSQL. Các timestamp lưu UTC; frontend định dạng theo timezone người dùng. `as_of_date` là ngày nghiệp vụ theo timezone của đối tượng phân tích.
 
-API lấy một instant UTC và chuyển sang timezone IANA của instrument để xác định ngày hiện tại, giới hạn catalog và validation. Adapter truyền timezone snapshot thành `business_timezone` trong context của từng run; các helper kiểm tra ngày và phân loại historical/live của lõi phải dùng cùng quy tắc khi tích hợp mốc 5. Không đổi timezone toàn process. Các khoảng dữ liệu theo ngày được đổi từ ranh giới ngày nghiệp vụ sang UTC khi cần so timestamp. Thiết kế chi tiết và ca kiểm thử ranh giới ngày nằm tại [backend](backend/design.md#ngày-nghiệp-vụ-giữa-api-và-engine); đây là công việc dự kiến, chưa phải hành vi đã triển khai.
+API lấy một instant UTC và chuyển sang timezone IANA của instrument để xác định ngày hiện tại, giới hạn catalog và validation. Adapter truyền timezone snapshot thành `business_timezone` trong context của từng run; các helper kiểm tra ngày và phân loại historical/live của lõi phải dùng cùng quy tắc khi tích hợp mốc 5 trong MVP1. Không đổi timezone toàn process. Các khoảng dữ liệu theo ngày được đổi từ ranh giới ngày nghiệp vụ sang UTC khi cần so timestamp. Thiết kế chi tiết và ca kiểm thử ranh giới ngày nằm tại [backend](backend/design.md#ngày-nghiệp-vụ-giữa-api-và-engine); đây là công việc dự kiến, chưa phải hành vi đã triển khai.
 
 ## 8. Tài liệu kỹ thuật tham chiếu
 

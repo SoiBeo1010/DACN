@@ -1,12 +1,15 @@
 # Sau MVP1 — Bảng điện Việt Nam và phân tích từng mã
 
 > **Scope: sau MVP1.** FR-22–FR-26, NFR-13, BR-13–BR-15 và TC-14–TC-16
-> được lưu làm backlog, không chặn nghiệm thu MVP1.
-> MVP1: đăng nhập → tạo phiên phân tích → theo dõi → báo cáo/lịch sử.
+> là giai đoạn triển khai tiếp theo, tạm hoãn đến khi nghiệm thu MVP1 tại mốc 5.
+> MVP1: đăng nhập → tạo phiên → lõi TradingAgents với dữ liệu thật → tiến độ/báo cáo/kết luận → lịch sử.
+> TC-13 với provider thật là điều kiện chốt MVP1; bảng điện không chặn MVP1.
 
-## 1. Định hướng mở rộng, chưa nằm trong MVP1
+## 1. Giai đoạn tiếp theo sau MVP1
 
-Sau khi hoàn thành MVP1 quản lý phiên phân tích, có thể mở rộng để người dùng theo dõi giá cổ phiếu Việt Nam, chọn mã để xem chi tiết và yêu cầu phân tích. Giá cập nhật định kỳ, có thể trễ; bản đầu của phần mở rộng ưu tiên ít tài nguyên.
+Sau khi hoàn thành MVP1 quản lý phiên phân tích với lõi TradingAgents và dữ liệu thật, triển khai bảng điện để người dùng theo dõi giá cổ phiếu Việt Nam, chọn mã để xem chi tiết và yêu cầu phân tích. Giá cập nhật định kỳ, có thể trễ; bản đầu của phần mở rộng ưu tiên ít tài nguyên.
+
+Thứ tự triển khai: nguồn giá/collector/cache và bảng điện theo dõi giá trước, sau đó watchlist, biểu đồ ngày và khởi tạo phân tích từ mã. Luồng phân tích tái sử dụng API/Worker/adapter/lõi đã tích hợp trong MVP1; không dời việc kết nối lõi sang giai đoạn bảng điện. Nguồn bảng giá VN được chọn riêng, không mặc định provider phân tích của MVP1 đã hỗ trợ toàn bộ mã VN.
 
 Trong MVP1, danh sách phiên `/analyses` là trang chính. Khi triển khai mở rộng, **bảng điện có thể trở thành trang chính** và danh sách phiên trở thành mục “Lịch sử phân tích”. Việc chuyển này được lên lịch riêng; worker, báo cáo và hủy/thử lại của MVP1 tiếp tục được dùng.
 

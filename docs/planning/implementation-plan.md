@@ -1,14 +1,14 @@
-# Kế hoạch hiện thực hóa frontend/backend
+# Kế hoạch triển khai MVP1 và giai đoạn bảng điện
 
 Theo dõi phạm vi, ưu tiên, trạng thái triển khai và tiêu chí nghiệm thu theo mã yêu cầu tại [requirements.md](../requirements.md). Các mốc bên dưới được đối chiếu với ma trận yêu cầu trong tài liệu đó.
 
 ## 1. Cách triển khai
 
-Làm một lát cắt xuyên suốt bằng mock engine trước: đăng nhập, tạo phiên, worker chạy, FE lấy tiến độ, lưu kết quả và mở lại lịch sử. Cách này kiểm chứng API, database và UX độc lập với độ ổn định hoặc chi phí của provider.
+MVP1 phải chạy xuyên suốt với lõi TradingAgents và dữ liệu thật: đăng nhập, tạo phiên, worker gọi lõi qua adapter, FE lấy tiến độ, lưu báo cáo/kết luận và mở lại lịch sử. Có thể xây lát cắt bằng mock engine trước để kiểm chứng API, database và UX; mock/stub tiếp tục phục vụ phát triển và CI.
 
 Các mốc dưới đây đi theo đầu ra; bảng đầu việc ở mục 9 cung cấp vai trò phụ trách, dependency và ước lượng công sức ban đầu. Chưa gán ngày bắt đầu/kết thúc vì chưa có thông tin thành viên và thời hạn. Nhóm có thể làm FE bằng mock API song song với BE sau khi chốt contract.
 
-MVP1 FE/BE nghiệm thu tại mốc 4; mốc 5 tích hợp engine live theo cùng luồng phân tích. Bảng điện, watchlist, biểu đồ, collector và API giá chỉ thuộc [backlog sau MVP1](post-mvp-market-workspace.md), không chặn các mốc 1–5. Prototype hiện có phù hợp để bắt đầu MVP1.
+MVP1 gồm toàn bộ mốc 1–5 và chỉ được nghiệm thu tại mốc 5 sau khi tích hợp lõi, chạy dữ liệu thật và đạt TC-01–TC-13. Mốc 4 là đầu ra trung gian để kiểm thử FE/BE bằng mock. Sau nghiệm thu MVP1, triển khai bảng điện theo dõi giá, watchlist, biểu đồ, collector và API giá theo [kế hoạch sau MVP1](post-mvp-market-workspace.md). Các chức năng bảng điện không chặn mốc 1–5; prototype hiện có dùng để tham khảo bố cục.
 
 ## 2. Mốc 1 — Chốt hợp đồng và wireframe
 
@@ -17,7 +17,7 @@ MVP1 FE/BE nghiệm thu tại mốc 4; mốc 5 tích hợp engine live theo cùn
 | Frontend | Backend | Đầu ra chung |
 |---|---|---|
 | Wireframe login/list/create/detail; các trạng thái lỗi/rỗng/loading | Pydantic schema công khai, enum, lỗi chuẩn, lifecycle | OpenAPI và fixture khớp nhau |
-| Chốt thuật ngữ và component trạng thái | Chốt instrument/profile catalog mock | Một bộ kịch bản có thể demo |
+| Chốt thuật ngữ và component trạng thái mock/live | Chốt fixture catalog và chọn instrument/profile/provider thật theo OPEN-04 | Bộ kịch bản dev/test và đầu vào demo live cho MVP1 |
 | Đối chiếu report metadata và decision với màn hình | Khảo sát stream và helper ngày giờ của lõi bằng code/fixture | Bảng ánh xạ input, step, report, rating, timezone để thử bằng stub ở mốc 2 |
 
 Tiêu chí hoàn thành:
@@ -26,6 +26,7 @@ Tiêu chí hoàn thành:
 - Có fixture cho `queued`, `running`, `cancel_requested`, `succeeded`, `failed`, `cancelled` và kết luận `needs_review`.
 - Các ID trong fixture liên kết nhất quán; data mode được gắn nhãn.
 - Kiểu TypeScript được sinh từ OpenAPI khi backend schema đã có.
+- Chọn ít nhất một instrument được lõi và nguồn thật hỗ trợ; xác định provider dữ liệu/mô hình, người cung cấp quyền truy cập và ngân sách theo OPEN-04 để chuẩn bị tích hợp trong MVP1.
 - Có bảng ánh xạ ít nhất `market_report` sang report section `market`, `final_trade_decision` sang decision và `REVIEW` sang `needs_review`; ghi rõ helper đang phụ thuộc ngày máy và thay đổi cần làm ở mốc 5.
 
 ## 3. Mốc 2 — Nền tảng ứng dụng
@@ -72,22 +73,24 @@ Tiêu chí hoàn thành:
 - Tìm mã/tên qua q kết hợp các filter cho cùng kết quả giữa FE/API; ngày đến bao gồm cả ngày đã chọn.
 - Mở Tiến trình muộn vẫn đọc đủ event; report thay đổi revision làm mới nội dung đang đọc mà không cần tải lại cả trang.
 
-Đây là mốc nghiệm thu FE/BE chính trước khi tích hợp engine thật.
+Đây là mốc kiểm chứng FE/BE bằng mock trước khi tích hợp engine thật trong cùng MVP1; chưa phải mốc nghiệm thu MVP1.
 
-## 6. Mốc 5 — Adapter TradingAgents
+## 6. Mốc 5 — Tích hợp TradingAgents và nghiệm thu MVP1
 
-Backend nối `AnalysisEngine` với mã lõi, cô lập config/storage/checkpoint, map báo cáo và rating. Frontend chỉ điều chỉnh khi xuất hiện một nhu cầu sản phẩm mới được thống nhất qua API contract.
+Backend nối `AnalysisEngine` với mã lõi, cấu hình provider dữ liệu/mô hình thật, bật catalog/profile live đã xác nhận hỗ trợ, cô lập config/storage/checkpoint và map báo cáo/rating. Frontend dùng cùng API để tạo phiên live, xem tiến độ, báo cáo/kết luận và mở lại lịch sử; chỉ điều chỉnh schema khi nhu cầu được thống nhất qua API contract.
 
 Tiêu chí hoàn thành:
 
-- Một instrument được provider hỗ trợ chạy được từ FE đến kết quả live.
+- TC-13 đạt: trên máy demo, một instrument/profile được provider thật hỗ trợ chạy từ FE qua API/Worker/adapter đến lõi, hiển thị tiến độ, lưu báo cáo/kết luận và đọc lại từ lịch sử sau reload/restart; API/UI có `data_mode = live`.
 - Hai phiên cùng instrument/ngày có artifact, checkpoint và kết quả riêng.
 - Backend không dùng singleton graph giữa các phiên.
-- Test thông thường dùng mock/stub; việc gọi provider thật thuộc smoke test chủ động.
+- Test thông thường và CI mặc định dùng mock/stub; smoke test gọi provider thật là bước chủ động bắt buộc trước nghiệm thu MVP1. Không thay dữ liệu thật bằng fixture hoặc tự chuyển sang mock khi nguồn lỗi.
 - Credential và payload nội bộ không xuất hiện trong API/log công khai.
 - Engine lỗi, quá hạn và output REVIEW được map đúng hợp đồng.
 - API, adapter và helper ngày hiện tại/historical của lõi dùng timezone instrument trong context từng run. Test clock cố định qua nửa đêm/DST và timezone máy khác nhau cho cùng kết quả; CLI không truyền context mới vẫn giữ hành vi cũ.
 - Profile live chỉ bật sau khi các công cụ của profile đã được kiểm tra ranh giới ngày nghiệp vụ và chuyển timestamp UTC đúng quy tắc.
+- Ghi bằng chứng TC-13 gồm môi trường, provider, instrument/ngày/profile, run_id và báo cáo/kết quả; hướng dẫn local có cách cấu hình provider phía server mà không đưa secret vào tài liệu.
+- FR-01–FR-21, NFR-01–NFR-12 và TC-01–TC-13 đều đạt; hồi quy mock/CLI vẫn đạt trước khi chốt MVP1 và chuyển sang giai đoạn bảng điện.
 
 ## 7. Ma trận kiểm thử cần xây khi triển khai
 
@@ -98,11 +101,13 @@ Tiêu chí hoàn thành:
 | Backend domain | Chuyển trạng thái hợp lệ; kết quả thành công đến sau cancel_requested phải xác nhận dừng rồi cancelled, không có decision; retry source terminal |
 | Backend tích hợp PostgreSQL | Idempotency create/retry đồng thời, replay retry trước quota/capability, quota đồng thời, claim nhiều worker, ghi sau mất lease bị chặn; barrier cho cả hai thứ tự commit hủy/hoàn tất |
 | Backend quyền truy cập | Đọc run/report/event của người khác, CSRF và session hết hạn |
-| E2E | Login → tạo → tiến độ → kết quả → mở lại lịch sử |
+| E2E | CI chạy mock; nghiệm thu MVP1 bắt buộc thêm TC-13 với lõi/provider thật: login → tạo → tiến độ → báo cáo/kết luận → mở lại lịch sử |
 | Phục hồi | Tắt worker giữa phiên, restart backend, timeout process con, retry mới |
 | Adapter | Thử nghiệm stream/report/rating bằng stub từ mốc 2; mốc 5 thêm cô lập cùng ticker/ngày, lỗi engine và clock cố định qua ranh giới ngày/DST/timezone máy |
 
 Các test về claim, khóa và transaction dùng PostgreSQL thật trong môi trường test, vì SQLite không có cùng hành vi SKIP LOCKED. Không gọi LLM thật trong CI mặc định.
+
+CI dùng mock không thay thế bằng chứng nghiệm thu dữ liệu thật của TC-13. Thiếu provider/key có thể tiếp tục kiểm thử mốc 1–4, nhưng chưa thể nghiệm thu MVP1.
 
 ## 8. Môi trường và CI dự kiến
 
@@ -114,6 +119,7 @@ Compose cho ứng dụng web sẽ có reverse proxy phục vụ FE static, API, 
 | Backend | Ruff, unit/integration test, migration từ DB rỗng |
 | Contract | Xuất OpenAPI, sinh FE types, phát hiện thay đổi chưa commit |
 | E2E | Chạy toàn luồng bằng mock engine |
+| Nghiệm thu live MVP1 | Chạy chủ động TC-13 với lõi và provider thật trên môi trường demo; lưu bằng chứng riêng trước khi chốt mốc 5 |
 | Đóng gói lõi | Giữ kiểm tra cài đặt package và import hiện tại |
 
 Trong runtime, migration chạy một lần ở bước release; API/worker không tự cạnh tranh chạy migration khi startup. API readiness chỉ thành công khi schema phù hợp.
@@ -127,6 +133,7 @@ Trong runtime, migration chạy một lần ở bước release; API/worker khô
 | M1-01 | 1 | Schema/OpenAPI, enum, lỗi, lifecycle và fixture contract | BE | 1–2 | Không |
 | M1-02 | 1 | Wireframe, trạng thái màn hình, FE fixture/types | FE | 1–2 | M1-01 |
 | M1-03 | 1 | Bảng ánh xạ stream/report/decision và khảo sát timezone lõi | BE, FE đối chiếu | 0.5–1 | M1-01 |
+| M1-04 | 1 | Chọn instrument/profile/provider thật; xác nhận quyền truy cập và ngân sách theo OPEN-04 | BE + vận hành | 0.5–1 | M1-03 |
 | M2-01 | 2 | FastAPI, DB/migration, auth/CSRF, lệnh user và catalog | BE | 2–3 | M1-01 |
 | M2-02 | 2 | App shell/router, session, login và form catalog | FE | 2–3 | M1-02, M2-01 |
 | M2-03 | 2 | Thử nghiệm adapter bằng stub và kiểm thử ánh xạ schema | BE, FE kiểm tra fixture | 1–2 | M1-03 |
@@ -134,11 +141,11 @@ Trong runtime, migration chạy một lần ở bước release; API/worker khô
 | M3-02 | 3 | Form tạo, polling snapshot và timeline | FE | 3–4 | M2-02, M3-01 |
 | M4-01 | 4 | Report/decision/history, executor hủy/deadline/recovery và retry | BE | 3–5 | M3-01 |
 | M4-02 | 4 | Reader/result/history và UX hủy/thử lại cùng key | FE | 3–4 | M3-02, M4-01 |
-| M4-03 | 4 | Compose web/local, CI, E2E và nghiệm thu TC-01–TC-12 | FE + BE | 2–3 | M4-01, M4-02 |
-| M5-01 | 5 | Adapter production, cô lập storage và sửa clock/timezone lõi | BE | 3–5 | M2-03, M4-03 |
-| M5-02 | 5 | Smoke live TC-13 và hồi quy mock/CLI | BE, FE xác nhận UI | 1–2 | M5-01, OPEN-04 |
+| M4-03 | 4 | Compose web/local, CI, E2E mock và kiểm chứng TC-01–TC-12 | FE + BE | 2–3 | M4-01, M4-02 |
+| M5-01 | 5 | Adapter production, catalog/profile live, cấu hình provider thật, cô lập storage và sửa clock/timezone lõi | BE | 3–5 | M1-04, M2-03, M4-03, OPEN-04 |
+| M5-02 | 5 | Demo live TC-13, hồi quy mock/CLI, hướng dẫn local live và bằng chứng nghiệm thu MVP1 | BE, FE xác nhận UI | 1–2 | M5-01, M4-03 |
 
-Người nhận việc cập nhật issue/PR, tên phụ trách, reviewer, ước lượng sau khảo sát và bằng chứng test cạnh ID tương ứng. Nếu thử nghiệm M2-03 phát hiện phải đổi contract, hoàn tất cập nhật trước M3-01/M3-02. M4-03 là điều kiện nghiệm thu MVP1; M5-02 là điều kiện nghiệm thu tích hợp live.
+Người nhận việc cập nhật issue/PR, tên phụ trách, reviewer, ước lượng sau khảo sát và bằng chứng test cạnh ID tương ứng. Nếu thử nghiệm M2-03 phát hiện phải đổi contract, hoàn tất cập nhật trước M3-01/M3-02. M4-03 là đầu ra kiểm thử trung gian; phải hoàn thành cả M4-03 và M5-02 mới đủ điều kiện nghiệm thu MVP1. Phần bảng điện bắt đầu triển khai sau đó.
 
 ### Các quyết định nhóm còn cần cung cấp
 
@@ -147,10 +154,10 @@ Người nhận việc cập nhật issue/PR, tên phụ trách, reviewer, ướ
 - Provider/market đầu tiên có dữ liệu thực tế đáp ứng, cùng quyền truy cập cần thiết.
 - Thời gian lưu dữ liệu, môi trường deploy và ngân sách chạy engine.
 
-Tên thành viên và lịch giao được chốt trước khi lập sprint theo OPEN-01; các thông tin còn lại được chốt ở mốc tương ứng trong requirements. Chúng không chặn việc chuẩn bị schema, fixture hoặc phát triển local bằng mock engine.
+Tên thành viên và lịch giao được chốt trước khi lập sprint theo OPEN-01; các thông tin còn lại được chốt ở mốc tương ứng trong requirements. Có thể chuẩn bị schema, fixture hoặc phát triển local bằng mock trước; quyền truy cập provider dữ liệu/mô hình thật phải sẵn sàng cho mốc 5 và nghiệm thu MVP1.
 
 ## 10. Sau MVP1 — bảng điện Việt Nam
 
-Chỉ lập lịch phần này sau khi nghiệm thu MVP1: FR-22–FR-26, NFR-13 và TC-14–TC-16. Định hướng vẫn là bảng điện VN cập nhật định kỳ có thể trễ, watchlist, biểu đồ ngày và phân tích từ mã. Thiết kế, API và dữ liệu dự kiến nằm trong [backlog bảng điện](post-mvp-market-workspace.md).
+Triển khai phần này sau khi nghiệm thu MVP1 tại mốc 5: FR-22–FR-26, NFR-13 và TC-14–TC-16. Bắt đầu với bảng điện VN để theo dõi giá cập nhật định kỳ có thể trễ, sau đó bổ sung watchlist, biểu đồ ngày và phân tích từ mã. Luồng phân tích tái sử dụng adapter/lõi đã chạy dữ liệu thật trong MVP1. Thiết kế, API và dữ liệu dự kiến nằm trong [kế hoạch bảng điện](post-mvp-market-workspace.md).
 
-Các yêu cầu này được đánh dấu P1 / Sau MVP1 / Tạm hoãn ở requirements. Chưa chọn nguồn hoặc tích hợp giá vẫn có thể hoàn thành, demo và nghiệm thu MVP1 theo luồng ban đầu.
+Các yêu cầu này được đánh dấu P1 / Sau MVP1 / Tạm hoãn ở requirements vì chờ hoàn thành MVP1. Chưa chọn nguồn bảng giá VN vẫn có thể nghiệm thu MVP1 nếu luồng phân tích đã có nguồn dữ liệu và mô hình thật; nguồn bảng điện, phạm vi mã và độ trễ được xác nhận riêng ở giai đoạn này.

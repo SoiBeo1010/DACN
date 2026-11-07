@@ -1,10 +1,10 @@
 # DACN — Tài liệu dự án
 
-Bộ tài liệu tập trung vào MVP1 quản lý phiên phân tích: đăng nhập → chọn mã/ngày → tạo phiên → theo dõi tiến độ → đọc báo cáo/kết luận → mở lại lịch sử. Trang chính sau đăng nhập là `/analyses`.
+Bộ tài liệu tập trung vào MVP1 quản lý phiên phân tích với lõi TradingAgents và dữ liệu thật: đăng nhập → chọn mã/ngày → tạo phiên → theo dõi tiến độ → đọc báo cáo/kết luận → mở lại lịch sử. Trang chính sau đăng nhập là `/analyses`. MVP1 chỉ được nghiệm thu tại mốc 5 sau khi luồng này chạy được qua adapter với provider thật; mock phục vụ phát triển và kiểm thử.
 
-Bảng điện Việt Nam, watchlist, biểu đồ và cập nhật giá định kỳ được lưu làm hướng mở rộng **sau MVP1**, không phải điều kiện để triển khai hoặc nghiệm thu MVP1.
+Bảng điện Việt Nam để theo dõi giá, watchlist, biểu đồ và cập nhật giá định kỳ được triển khai ở giai đoạn tiếp theo **sau MVP1**, không phải điều kiện để nghiệm thu MVP1.
 
-**Trạng thái:** đặc tả và thiết kế để triển khai; đã có prototype giao diện, chưa có ứng dụng web FE/BE hoàn chỉnh. Ngày cập nhật: 2026-11-05.
+**Trạng thái:** đặc tả và thiết kế để triển khai; đã có prototype giao diện, chưa có ứng dụng web FE/BE hoàn chỉnh. Ngày cập nhật: 2026-11-07.
 
 ## Bắt đầu từ đâu?
 
@@ -48,7 +48,7 @@ docs/
 | Triển khai | [Kế hoạch thực hiện](planning/implementation-plan.md) | Thứ tự công việc, đầu ra và tiêu chí hoàn thành |
 | Sau MVP1 | [Backlog bảng điện](planning/post-mvp-market-workspace.md) | Bố cục, API và dữ liệu dự kiến của bảng điện/watchlist; chưa bắt buộc |
 
-Prototype hiện tại minh họa luồng phân tích của MVP1 và mở trực tiếp bằng trình duyệt. Khi xem trên GitHub, đọc ảnh trong planning giao diện hoặc tải HTML về để thử. Chưa cần bổ sung màn hình bảng điện để nghiệm thu MVP1.
+Prototype hiện tại dùng dữ liệu giả lập để minh họa bố cục luồng phân tích của MVP1 và mở trực tiếp bằng trình duyệt. Khi xem trên GitHub, đọc ảnh trong planning giao diện hoặc tải HTML về để thử. Bằng chứng nghiệm thu MVP1 phải đến từ ứng dụng tích hợp lõi và dữ liệu thật; màn hình bảng điện được xây sau MVP1.
 
 ## Cách cập nhật tài liệu
 
@@ -61,7 +61,7 @@ Prototype hiện tại minh họa luồng phân tích của MVP1 và mở trực
 
 ## Định hướng hiện tại
 
-React/TypeScript cho frontend; FastAPI cho backend; PostgreSQL lưu phiên, báo cáo và hàng đợi; worker riêng chạy phân tích. Hoàn thiện FE/BE bằng mock trước, sau đó tích hợp TradingAgents theo cùng luồng. MVP1 không cần quote API, bảng OHLCV, watchlist hoặc collector giá.
+React/TypeScript cho frontend; FastAPI cho backend; PostgreSQL lưu phiên, báo cáo và hàng đợi; worker riêng chạy phân tích. Trong MVP1, mốc 1–4 xây và kiểm thử FE/BE bằng mock, mốc 5 tích hợp TradingAgents qua adapter và nghiệm thu toàn luồng bằng dữ liệu thật. Sau MVP1 triển khai bảng điện theo dõi giá, gồm quote API, bảng OHLCV, watchlist và collector giá. Dữ liệu phục vụ phân tích trong MVP1 được lấy qua công cụ của lõi, độc lập với dịch vụ bảng điện.
 
 Tham số vận hành ban đầu được ghi tại đặc tả và kiến trúc để kiểm thử, chưa phải SLA. Chi tiết phối hợp bên trong agent, mở rộng vendor, backtest diện rộng và đặt lệnh thuộc các giai đoạn sau.
 

@@ -2,9 +2,9 @@
 
 Yêu cầu và quy tắc nghiệp vụ được quản lý tại [requirements.md](../requirements.md). Các use case, lifecycle và cơ chế xử lý bên dưới là phương án thực hiện để đối chiếu với mã FR/NFR/BR.
 
-**Phạm vi hiện tại:** backend cho luồng phân tích của MVP1. Market data service, watchlist và collector định kỳ được mô tả tại [backlog sau MVP1](../planning/post-mvp-market-workspace.md); không phải dependency của API hoặc worker MVP1.
+**Phạm vi hiện tại:** backend cho luồng phân tích của MVP1, gồm adapter kết nối lõi TradingAgents và provider dữ liệu/mô hình thật. Dịch vụ bảng điện theo dõi giá, watchlist và collector định kỳ được triển khai sau MVP1 theo [kế hoạch bảng điện](../planning/post-mvp-market-workspace.md); không phải dependency của API hoặc worker MVP1.
 
-Dữ liệu giá mà agent cần để lập báo cáo vẫn được lấy qua công cụ của engine; phần tạm hoãn là dịch vụ bảng giá liên tục phục vụ giao diện.
+Dữ liệu giá mà agent cần để lập báo cáo phải được lấy từ nguồn thật qua công cụ của engine ngay trong MVP1; phần tạm hoãn là dịch vụ bảng giá cập nhật định kỳ phục vụ giao diện.
 
 ## 1. Kiến trúc module
 
@@ -151,11 +151,13 @@ EngineResult
 
 `describe_steps` là thao tác metadata không gọi provider hay khởi chạy graph, cung cấp tiến độ ở mức ổn định: chuẩn bị, phân tích, tổng hợp và hoàn tất. Adapter có thể bổ sung bước chi tiết; FE hiển thị danh sách từ server. Không cần thay graph nội bộ để dựng giao diện ban đầu.
 
-Mock engine hỗ trợ các kịch bản: thành công, cần xem xét, thất bại giữa chừng, chạy chậm, hủy, mất worker. Công cụ cấu hình kịch bản chỉ bật trong development/test, không xuất hiện trong form người dùng triển khai thật.
+Mock engine hỗ trợ các kịch bản: thành công, cần xem xét, thất bại giữa chừng, chạy chậm, hủy, mất worker để phát triển và chạy CI. Công cụ cấu hình kịch bản chỉ bật trong development/test, không xuất hiện trong form người dùng triển khai thật. Worker chọn engine theo cấu hình đã resolve từ instrument/profile: `live` dùng TradingAgents adapter, `mock` dùng MockEngine; nguồn live lỗi phải đi qua hợp đồng lỗi, không tự chuyển sang mock.
 
-## 7. Tích hợp TradingAgents — mốc 5 sau MVP1 FE/BE
+## 7. Tích hợp TradingAgents — mốc 5 bắt buộc trong MVP1
 
-MVP1 dùng MockEngine. Adapter production và nguồn dữ liệu live chỉ bắt buộc ở mốc 5; key LLM, checkpoint hoặc nguồn live không phải điều kiện chạy/nghiệm thu MVP1 mock. Thử nghiệm adapter bằng stub ở mốc 1–2 kiểm tra trước hình dạng stream, ánh xạ báo cáo/kết luận và context ngày giờ, không gọi provider.
+MVP1 phải có adapter hoạt động với lõi TradingAgents và provider dữ liệu/mô hình thật cho ít nhất một instrument/profile live. Thử nghiệm adapter bằng stub ở mốc 1–2 kiểm tra trước hình dạng stream, ánh xạ báo cáo/kết luận và context ngày giờ mà không gọi provider; mốc 5 hoàn thiện tích hợp và chạy TC-13 trước nghiệm thu MVP1. Thiếu key hoặc quyền truy cập nguồn thật chỉ cho phép tiếp tục phát triển bằng mock, chưa đủ điều kiện nghiệm thu MVP1.
+
+Nghiệm thu phải tạo phiên từ FE, đi qua API/Worker/adapter/lõi với `data_mode = live`, hiển thị tiến độ, lưu báo cáo/kết luận và mở lại từ lịch sử sau reload/restart. Ghi bằng chứng môi trường, provider, instrument/ngày/profile, run_id và kết quả; không dùng fixture thay đầu ra thật. Catalog/profile live chỉ công khai các tổ hợp đã được xác nhận hỗ trợ. CI mặc định tiếp tục dùng mock/stub.
 
 | Điểm trong code | Cách dùng dự kiến |
 |---|---|
@@ -179,7 +181,7 @@ Output hiện tại chủ yếu là Markdown. Adapter chỉ cung cấp các trư
 - Clock được đọc nhất quán trong từng thao tác. Khi qua ngày mới, tính lại giới hạn hiện tại nhưng không sửa `as_of_date` đã snapshot. Timestamp vận hành vẫn lưu UTC; bộ lọc lịch sử dùng timezone hiển thị của user, độc lập với ngày nghiệp vụ instrument.
 - Các công cụ lọc dữ liệu theo ngày phải dùng ranh giới ngày của instrument rồi đổi thành khoảng UTC khi so timestamp; không mặc định mọi ngày nghiệp vụ bắt đầu lúc 00:00 UTC. Mốc 5 kiểm tra các công cụ được profile live sử dụng trước khi bật profile đó.
 
-Kiểm thử dùng cùng một instant UTC với instrument ở `Asia/Ho_Chi_Minh` và `America/New_York`, chạy dưới timezone máy khác nhau. Bao phủ trước/sau nửa đêm nghiệp vụ, ngày có DST, validation ngày tương lai và phân loại historical/live; API và engine phải thống nhất dù máy chủ ở UTC. Khảo sát helper và fixture được làm ở mốc 1–2; sửa lõi và nghiệm thu tích hợp thuộc mốc 5.
+Kiểm thử dùng cùng một instant UTC với instrument ở `Asia/Ho_Chi_Minh` và `America/New_York`, chạy dưới timezone máy khác nhau. Bao phủ trước/sau nửa đêm nghiệp vụ, ngày có DST, validation ngày tương lai và phân loại historical/live; API và engine phải thống nhất dù máy chủ ở UTC. Khảo sát helper và fixture được làm ở mốc 1–2; sửa lõi và nghiệm thu tích hợp thuộc mốc 5 trong MVP1.
 
 ## 8. Báo cáo và tính nhất quán
 
